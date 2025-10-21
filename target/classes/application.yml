@@ -1,0 +1,26 @@
+#spring.application.name=customer
+server:
+  port: 8080
+
+spring:
+  application:
+    name: Finance-Tracking
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/finance
+    username: aashutosh
+    password: Bank@123
+    driverClassName: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    naming:
+      physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+jwt:
+  secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
+  expiration-ms: 86400000 # 1 day in milliseconds
