@@ -7,9 +7,9 @@ spring:
     name: Finance-Tracking
 
   datasource:
-    url: jdbc:mysql://mysql-db:3306/tracker
-    username: root
-    password: admin
+    url: jdbc:mysql://<railway-db-host>:3306/tracker
+    username: <username>
+    password: <password>
     driverClassName: com.mysql.cj.jdbc.Driver
 
   jpa:
