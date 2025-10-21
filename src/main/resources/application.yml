@@ -1,15 +1,15 @@
 #spring.application.name=customer
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: Finance-Tracking
 
   datasource:
-    url: jdbc:mysql://localhost:3306/finance
-    username: aashutosh
-    password: Bank@123
+    url: jdbc:mysql://mysql-db:3306/tracker
+    username: root
+    password: admin
     driverClassName: com.mysql.cj.jdbc.Driver
 
   jpa:

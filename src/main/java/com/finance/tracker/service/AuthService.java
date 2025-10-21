@@ -25,15 +25,15 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    @PostConstruct
-    public void createDemoUser() {
-        if (userRepository.findByEmail("aashtosh@gmail.com").isEmpty()) {
-            User u = User.builder()
-                    .email("user@example.com")
-                    .passwordHash(encoder.encode("Aashu@123"))
-                    .fullName("Demo User")
-                    .build();
-            userRepository.save(u);
-        }
-    }
+//    @PostConstruct
+//    public void createDemoUser() {
+//        if (userRepository.findByEmail("aashtosh@gmail.com").isEmpty()) {
+//            User u = User.builder()
+//                    .email("user@example.com")
+//                    .passwordHash(encoder.encode("Aashu@123"))
+//                    .fullName("Demo User")
+//                    .build();
+//            userRepository.save(u);
+//        }
+//    }
 }
