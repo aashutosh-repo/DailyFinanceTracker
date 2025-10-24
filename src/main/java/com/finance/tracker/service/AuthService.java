@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -23,6 +25,10 @@ public class AuthService {
         }
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(token);
+    }
+
+    public List<User> getusers() {
+        return userRepository.findAll();
     }
 
 //    @PostConstruct
