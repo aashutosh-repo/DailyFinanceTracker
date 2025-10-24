@@ -7,9 +7,9 @@ spring:
     name: Finance-Tracking
 
   datasource:
-    url: jdbc:jdbc:mysql://${RAILWAY_TCP_PROXY_DOMAIN}:${RAILWAY_TCP_PROXY_PORT}/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true
-    username: ${MYSQLUSER:root}
-    password: ${MYSQL_ROOT_PASSWORD}
+    url: jdbc:mysql://root:UfBUzOSXGtLoOBhPzjxVOEvUJhxrPvvg@mainline.proxy.rlwy.net:45320/railway
+    username: root
+    password: UfBUzOSXGtLoOBhPzjxVOEvUJhxrPvvg
     driverClassName: com.mysql.cj.jdbc.Driver
 
   jpa:
