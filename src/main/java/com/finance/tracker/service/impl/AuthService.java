@@ -1,10 +1,13 @@
-package com.finance.tracker.service;
+package com.finance.tracker.service.impl;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
+import com.finance.tracker.dto.UserDto;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,19 +27,40 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
         String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
+        UserDto userDto = UserMapper.toDto(user);
+        return new AuthResponse(token,userDto);
+    }
+
+    public Authentication getAuthentication(String token) {
+        // Extract username from token
+        String username = jwtService.extractUsername(token);
+
+        // Load user details
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        // Create Authentication object
+        return new UsernamePasswordAuthenticationToken(
+                user, null
+        );
     }
 
     public List<User> getusers() {
         return userRepository.findAll();
     }
 
+    public UserDto authenticate(String token) {
+        String userName= jwtService.extractUsername(token);
+        User user = userRepository.findByEmail(userName).orElseThrow(()-> new RuntimeException("User Not Found"));
+        return UserMapper.toDto(user);
+    }
+
 //    @PostConstruct
 //    public void createDemoUser() {
-//        if (userRepository.findByEmail("aashtosh@gmail.com").isEmpty()) {
+//        if (userRepository.findByEmail("aashu@gmail.com").isEmpty()) {
 //            User u = User.builder()
-//                    .email("user@example.com")
-//                    .passwordHash(encoder.encode("Aashu@123"))
+//                    .email("ashu@gmail.com")
+//                    .passwordHash(encoder.encode("ashu@123"))
 //                    .fullName("Demo User")
 //                    .build();
 //            userRepository.save(u);

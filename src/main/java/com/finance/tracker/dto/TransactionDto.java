@@ -1,16 +1,18 @@
 package com.finance.tracker.dto;
+import com.finance.tracker.constants.ExpenseType;
+import lombok.Builder;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 public class TransactionDto {
-    private UUID id;
-    private UUID userId;
+    private Long id;
+    private Long userId;
     private Long categoryId;
-    private BigDecimal amount;
+    private BigDecimal txnAmount;
+    private ExpenseType expenseCategory;
     private String txnType;
-    private LocalDate txnDate;
+    private LocalDate dateOfExpense;
     private String description;
 }
