@@ -17,4 +17,14 @@ public class UserMapper {
         dto.setName(user.getFullName());
         return dto;
     }
+
+
+    public static User toUser(UserDto user) {
+        if (user == null) {
+            return null;
+        }
+        User newUser = new User();
+        newUser.setEmail(user.getEmail());
+        newUser.setFullName(user.getName());return newUser;
+    }
 }

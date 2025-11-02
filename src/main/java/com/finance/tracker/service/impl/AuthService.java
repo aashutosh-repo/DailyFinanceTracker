@@ -6,9 +6,11 @@ import com.finance.tracker.entity.User;
 import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +20,23 @@ import java.util.List;
 public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    public AuthResponse register(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+        userRepository.save(user);
+        UserDto dto = UserMapper.toDto(user);
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new AuthResponse(token, dto);
+    }
 
     public AuthResponse login(AuthRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
