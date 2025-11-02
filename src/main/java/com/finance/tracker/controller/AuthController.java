@@ -7,6 +7,9 @@ import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.service.impl.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.logging.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,7 @@ import java.util.Map;
 //@RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    Logger logger = LogManager.getLogger(AuthController.class);
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -38,6 +42,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        logger.info("Login request received for email: " + request.getEmail());
         if(request.getEmail()==null || request.getPassword()==null){
             User newUser = new User();
             newUser.setEmail("aashutosh@gmail.com");
@@ -45,6 +50,10 @@ public class AuthController {
             authService.register(newUser);
         }
         AuthResponse authResponse = authService.login(request);
+        if (authResponse == null) {
+            logger.error("Authentication failed for email: " + request.getEmail());
+            return ResponseEntity.status(401).build();
+        }
 
         ResponseCookie cookie = ResponseCookie.from("jwt", authResponse.getAccessToken())
                 .httpOnly(true)
