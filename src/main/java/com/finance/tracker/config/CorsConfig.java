@@ -16,7 +16,8 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200")); // your Angular app
+        config.setAllowedOrigins(List.of("http://localhost:4200",
+                "https://finance-tracker-ui-five.vercel.app")); // your Angular app
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true); // allow cookies/JWT via cookies
