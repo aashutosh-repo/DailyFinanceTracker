@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +40,18 @@ public class AuthService {
     }
 
     public AuthResponse login(AuthRequest req) {
-        User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
-        if (!encoder.matches(req.getPassword(), user.getPasswordHash())) {
+        Optional<User> user = userRepository.findByEmail(req.getEmail());
+        if(user.isEmpty()) {
+            user = userRepository.findByUsername(req.getEmail());
+        }
+        if(user.isEmpty()) {
             throw new RuntimeException("Invalid credentials");
         }
-        String token = jwtService.generateToken(user.getEmail());
-        UserDto userDto = UserMapper.toDto(user);
+        if (!encoder.matches(req.getPassword(), user.get().getPasswordHash())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+        String token = jwtService.generateToken(user.get().getEmail());
+        UserDto userDto = UserMapper.toDto(user.get());
         return new AuthResponse(token,userDto);
     }
 

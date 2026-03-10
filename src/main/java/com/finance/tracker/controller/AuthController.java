@@ -1,12 +1,14 @@
 package com.finance.tracker.controller;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
+import com.finance.tracker.dto.RegistrationRequest;
 import com.finance.tracker.dto.UserDto;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.service.impl.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,17 +34,31 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest user) {
-        User user1 = new User();
-        user1.setEmail(user.getEmail());
-        user1.setPasswordHash(user.getPassword());
-        AuthResponse authResponse = authService.register(user1);
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
+        logger.info("Registration request received for email: {}", registrationRequest.getEmail());
+        
+        User user = User.builder()
+                .username(registrationRequest.getUsername())
+                .email(registrationRequest.getEmail())
+                .passwordHash(registrationRequest.getPassword())
+                .fullName(registrationRequest.getFullName())
+                .phone(registrationRequest.getPhone())
+                .countryCode(registrationRequest.getCountryCode())
+                .currency(registrationRequest.getCurrency() != null ? registrationRequest.getCurrency() : "USD")
+                .isActive(true)
+                .emailVerified(false)
+                .phoneVerified(false)
+                .twoFactorEnabled(false)
+                .build();
+        
+        AuthResponse authResponse = authService.register(user);
+        logger.info("User registered successfully: {}", registrationRequest.getEmail());
         return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        logger.info("Login request received for email: " + request.getEmail());
+        logger.info("Login request received for email: {}" + request.getEmail());
         if(request.getEmail()==null || request.getPassword()==null){
             User newUser = new User();
             newUser.setEmail("aashutosh@gmail.com");
