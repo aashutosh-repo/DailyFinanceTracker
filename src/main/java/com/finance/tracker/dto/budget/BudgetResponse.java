@@ -21,6 +21,8 @@ import java.time.LocalDateTime;
 public class BudgetResponse {
 
     private Long id;
+    private Long categoryId;
+    private String categoryName;
     private String name;
     private BigDecimal amount;
     private String period;

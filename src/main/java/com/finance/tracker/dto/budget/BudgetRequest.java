@@ -17,6 +17,9 @@ public class BudgetRequest {
     @NotBlank(message = "Budget name is required")
     private String name;
     
+    @NotNull(message = "Category is required")
+    private Long categoryId;
+    
     @NotNull(message = "Amount is required")
     private BigDecimal amount;
     
@@ -30,7 +33,6 @@ public class BudgetRequest {
     @NotNull(message = "End date is required")
     private LocalDate endDate;
     
-    private Long categoryId;
     private String currency = "USD";
     
     @DecimalMin("1")
