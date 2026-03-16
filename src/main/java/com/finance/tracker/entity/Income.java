@@ -1,5 +1,6 @@
 package com.finance.tracker.entity;
 
+import com.finance.tracker.constants.IncomeSource;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "income", indexes = {
     @Index(name = "idx_income_user_id", columnList = "user_id"),
-    @Index(name = "idx_income_source_id", columnList = "source_id"),
+    @Index(name = "idx_income_source_type", columnList = "source_type"),
     @Index(name = "idx_income_income_date", columnList = "income_date"),
     @Index(name = "idx_income_user_date", columnList = "user_id,income_date"),
     @Index(name = "idx_income_deleted_at", columnList = "deleted_at")
@@ -34,9 +35,9 @@ public class Income extends BaseEntity {
     private User user;
     
     @NotNull
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "source_id", nullable = false)
-    private IncomeSource source;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", nullable = false, length = 50)
+    private IncomeSource sourceType;
     
     @Column(length = 500)
     private String description;

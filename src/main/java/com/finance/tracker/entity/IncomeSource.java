@@ -3,8 +3,6 @@ package com.finance.tracker.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * IncomeSource Entity - Categories for income sources
@@ -47,8 +45,4 @@ public class IncomeSource extends BaseEntity {
     
     @Column(nullable = false)
     private Boolean isDefault = false;
-    
-    // Relationships
-    @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Income> incomeEntries = new HashSet<>();
 }
