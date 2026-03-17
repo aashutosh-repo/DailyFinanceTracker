@@ -35,7 +35,7 @@ public class SecurityConfig {
                             "/swagger-ui/**",
                             "/swagger-ui.html",
                             "/swagger-ui/index.html",
-                            "/api/llm/chat/**"
+                            "/api/llm/**"
                     ).permitAll()
                     // Auth endpoints
                     .requestMatchers("/api/v1/auth/**").permitAll()

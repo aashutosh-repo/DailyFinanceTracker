@@ -77,7 +77,7 @@ public class AuthService {
         if(user.isEmpty()) {
             throw new RuntimeException("Invalid credentials");
         }
-        if (!encoder.matches(req.getPassword(), user.get().getPasswordHash())) {
+        if (!passwordEncoder.matches(req.getPassword(), user.get().getPasswordHash())) {
             throw new RuntimeException("Invalid credentials");
         }
         String token = jwtService.generateToken(user.get().getEmail());
@@ -101,6 +101,18 @@ public class AuthService {
 
     public List<User> getusers() {
         return userRepository.findAll();
+    }
+
+    /**
+     * Verify if a JWT token is valid
+     */
+    public boolean verifyToken(String token) {
+        try {
+            String email = jwtService.extractUsername(token);
+            return email != null && !email.isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public UserDto authenticate(String token) {

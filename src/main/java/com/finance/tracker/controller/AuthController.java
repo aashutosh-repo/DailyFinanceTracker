@@ -4,7 +4,9 @@ import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.RegistrationRequest;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.service.impl.AuthService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
@@ -53,7 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request, HttpServletResponse response) {
         logger.info("Login request received for email: {}", request.getEmail());
         
         // Validate input
@@ -68,40 +70,132 @@ public class AuthController {
             );
         }
         
-        AuthResponse authResponse = authService.login(request);
-        if (authResponse == null) {
-            logger.error("Authentication failed for email: {}", request.getEmail());
+        try {
+            AuthResponse authResponse = authService.login(request);
+            if (authResponse == null) {
+                logger.error("Authentication failed for email: {}", request.getEmail());
+                return ResponseEntity.status(401).body(
+                    AuthResponse.builder()
+                        .success(false)
+                        .message("Invalid credentials")
+                        .build()
+                );
+            }
+
+            // Set HttpOnly cookie for token (cannot be accessed from JavaScript)
+            ResponseCookie tokenCookie = ResponseCookie.from("auth_token", authResponse.getAccessToken())
+                    .httpOnly(true)  // ✅ Cannot be accessed from JavaScript
+                    .secure(true)    // ✅ Only sent over HTTPS
+                    .path("/")
+                    .sameSite("Lax")
+                    .maxAge(7 * 24 * 60 * 60)  // 7 days
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, tokenCookie.toString());
+
+            logger.info("User logged in successfully: {}", request.getEmail());
+            return ResponseEntity.ok(authResponse);
+        } catch (RuntimeException e) {
+            logger.error("Authentication failed: {}", e.getMessage());
             return ResponseEntity.status(401).body(
                 AuthResponse.builder()
                     .success(false)
-                    .message("Invalid credentials")
+                    .message(e.getMessage() != null ? e.getMessage() : "Invalid credentials")
+                    .build()
+            );
+        } catch (Exception e) {
+            logger.error("Unexpected error during login", e);
+            return ResponseEntity.status(500).body(
+                AuthResponse.builder()
+                    .success(false)
+                    .message("An unexpected error occurred")
                     .build()
             );
         }
-
-        ResponseCookie cookie = ResponseCookie.from("jwt", authResponse.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .sameSite("Strict")
-                .maxAge(3600)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(authResponse);
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("JWT_TOKEN", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0); // deletes cookie
-//        cookie.setS/ameSite("Strict");
-        response.addCookie(cookie);
-        return ResponseEntity.ok(Map.of("message", "Logged out"));
+        // Clear auth_token cookie
+        ResponseCookie tokenCookie = ResponseCookie.from("auth_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)  // Expire immediately
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, tokenCookie.toString());
+
+        // Clear user_data cookie
+        ResponseCookie userCookie = ResponseCookie.from("user_data", "")
+                .httpOnly(false)
+                .secure(true)
+                .path("/")
+                .maxAge(0)  // Expire immediately
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, userCookie.toString());
+        
+        logger.info("User logged out successfully");
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken(HttpServletRequest request) {
+        try {
+            // Extract token from cookies
+            String token = extractTokenFromCookies(request);
+            
+            if (token == null) {
+                logger.warn("No token found in cookies for verification");
+                return ResponseEntity.status(401).body(
+                    Map.of(
+                        "valid", false,
+                        "message", "No token found"
+                    )
+                );
+            }
+            
+            // Verify token validity
+            boolean isValid = authService.verifyToken(token);
+            
+            if (isValid) {
+                logger.debug("Token verification successful");
+                return ResponseEntity.ok(Map.of(
+                    "valid", true,
+                    "message", "Token is valid"
+                ));
+            } else {
+                logger.warn("Token verification failed - invalid token");
+                return ResponseEntity.status(401).body(Map.of(
+                    "valid", false,
+                    "message", "Token is invalid"
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("Error verifying token", e);
+            return ResponseEntity.status(401).body(Map.of(
+                "valid", false,
+                "message", "Token verification failed: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Extract JWT token from cookies
+     */
+    private String extractTokenFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        
+        for (Cookie cookie : cookies) {
+            if ("auth_token".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        
+        return null;
     }
 
 
