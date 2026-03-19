@@ -1,23 +1,27 @@
 package com.finance.tracker.service.impl;
 
 import com.finance.tracker.constants.ExpenseType;
+import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.dto.TransactionDto;
-import com.finance.tracker.entity.Transaction;
-import com.finance.tracker.entity.User;
+import com.finance.tracker.entity.*;
 import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.TransactionMapper;
-import com.finance.tracker.repository.TransactionRepository;
-import com.finance.tracker.repository.UserRepository;
+import com.finance.tracker.repository.*;
 import com.finance.tracker.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final ExpenseRepository expenseRepository;
+    private final IncomeRepository incomeRepository;
+    private final ExpenseCategoryRepository expenseCategoryRepository;
 
 //    public TransactionDto create(TransactionDto dto, String userEmail) {
 //        User user = userRepo.findByEmail(userEmail).orElseThrow();
@@ -47,7 +51,85 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction saved = transactionRepository.save(expense);
         dto.setId(saved.getId());
+        
+        // Sync to EXPENSES or INCOME table based on transaction type
+        syncTransactionToDetailTable(dto, user);
+        
         return dto;
+    }
+    
+    /**
+     * Sync transaction to EXPENSES or INCOME table based on txnType
+     */
+    private void syncTransactionToDetailTable(TransactionDto dto, User user) {
+        try {
+            if ("DEBIT".equalsIgnoreCase(dto.getTxnType())) {
+                // Create Expense record
+                createExpenseFromTransaction(dto, user);
+                log.info("Synced DEBIT transaction to EXPENSES table for user: {}", user.getId());
+            } else if ("CREDIT".equalsIgnoreCase(dto.getTxnType())) {
+                // Create Income record
+                createIncomeFromTransaction(dto, user);
+                log.info("Synced CREDIT transaction to INCOME table for user: {}", user.getId());
+            } else {
+                log.warn("Unknown transaction type: {}", dto.getTxnType());
+            }
+        } catch (Exception e) {
+            log.error("Error syncing transaction to detail table for user: {}", user.getId(), e);
+            // Log but don't fail - transaction is already saved
+        }
+    }
+    
+    /**
+     * Create Expense record from DEBIT transaction
+     */
+    private void createExpenseFromTransaction(TransactionDto dto, User user) {
+        // Get category - use provided categoryId or fetch default
+        ExpenseCategory category;
+        if (dto.getCategoryId() != null) {
+            category = expenseCategoryRepository
+                    .findByIdAndUserIdAndDeletedAtIsNull(dto.getCategoryId(), user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                        "Category not found for user: " + dto.getCategoryId()
+                    ));
+        } else {
+            // Fallback to "Other" category if available
+            category = expenseCategoryRepository
+                    .findByUserIdAndNameAndDeletedAtIsNull(user.getId(), "Other")
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                        "Default 'Other' category not found for user"
+                    ));
+        }
+        
+        Expense expense = Expense.builder()
+                .user(user)
+                .category(category)
+                .description(dto.getDescription())
+                .amount(dto.getTxnAmount())
+                .currency("USD")
+                .expenseDate(dto.getDateOfExpense())
+                .isRecurring(false)
+                .build();
+        
+        expenseRepository.save(expense);
+    }
+    
+    /**
+     * Create Income record from CREDIT transaction
+     */
+    private void createIncomeFromTransaction(TransactionDto dto, User user) {
+        // Map expense category to income source
+        Income income = Income.builder()
+                .user(user)
+                .sourceType(IncomeSource.OTHER)
+                .description(dto.getDescription())
+                .amount(dto.getTxnAmount())
+                .currency("USD")
+                .incomeDate(dto.getDateOfExpense())
+                .isRecurring(false)
+                .build();
+        
+        incomeRepository.save(income);
     }
 
     @Override

@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600, allowedHeaders = "*")
 public class TransactionController {
     private final TransactionServiceImpl txService;
     private final FileProcessingServices fileProcessingServices;
