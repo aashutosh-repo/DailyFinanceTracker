@@ -13,4 +13,5 @@ public interface ExpenseCategoryRepository extends JpaRepository<ExpenseCategory
     Page<ExpenseCategory> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
     Optional<ExpenseCategory> findByUserIdAndNameAndDeletedAtIsNull(Long userId, String name);
     boolean existsByUserIdAndNameAndDeletedAtIsNull(Long userId, String name);
+    Optional<ExpenseCategory> findByIdAndUserIdAndDeletedAtIsNull(Long id, Long userId);
 }
