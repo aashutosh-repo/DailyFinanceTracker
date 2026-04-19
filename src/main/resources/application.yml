@@ -26,3 +26,8 @@ spring:
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
+
+ollama:
+  url: http://localhost:11434
+  model: phi3:mini
+  timeout: 60

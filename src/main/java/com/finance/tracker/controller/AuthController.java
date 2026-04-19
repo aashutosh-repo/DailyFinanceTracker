@@ -32,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegistrationRequest registrationRequest) {
         logger.info("Registration request received for email: {}", registrationRequest.getEmail());
         
         User user = User.builder()

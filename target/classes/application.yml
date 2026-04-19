@@ -1,26 +1,33 @@
 #spring.application.name=customer
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: Finance-Tracking
+  profiles:
+    active: prod
 
   datasource:
-    url: jdbc:mysql://localhost:3306/finance
-    username: aashutosh
-    password: Bank@123
-    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://localhost:5432/expenseTrecker?sslmode=disable
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     naming:
       physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
+
+ollama:
+  url: http://localhost:11434
+  model: phi3:mini
+  timeout: 60

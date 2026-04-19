@@ -42,4 +42,6 @@ public class RegistrationRequest {
     
     @Pattern(regexp = "^[A-Z]{3}$", message = "Currency code must be 3-letter ISO code (optional)")
     private String currency;
+    private String dateOfBirth;
+    private String bio;
 }

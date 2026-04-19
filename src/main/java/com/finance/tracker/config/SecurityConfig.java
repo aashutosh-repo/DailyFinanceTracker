@@ -31,6 +31,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     // Swagger/OpenAPI URLs
                     .requestMatchers(
+                            "/api/v1/auth/register",
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html",
