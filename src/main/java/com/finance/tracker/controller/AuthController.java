@@ -87,7 +87,7 @@ public class AuthController {
                     .httpOnly(true)  // ✅ Cannot be accessed from JavaScript
                     .secure(true)    // ✅ Only sent over HTTPS
                     .path("/")
-                    .sameSite("Lax")
+                    .sameSite("None")
                     .maxAge(7 * 24 * 60 * 60)  // 7 days
                     .build();
 
