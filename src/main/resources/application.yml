@@ -21,7 +21,9 @@ spring:
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
-
+logging:
+  level:
+    org.springframework.boot: DEBUG
 ollama:
   url: http://localhost:11434
   model: phi3:mini
