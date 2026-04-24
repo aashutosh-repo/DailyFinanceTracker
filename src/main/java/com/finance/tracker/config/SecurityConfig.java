@@ -38,6 +38,8 @@ public class SecurityConfig {
                             "/swagger-ui/index.html",
                             "/api/llm/**"
                     ).permitAll()
+                            .requestMatchers("/actuator/health").permitAll()
+                            .requestMatchers("/ping").permitAll()
                     // Auth endpoints
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     // Your transaction endpoints (optional)

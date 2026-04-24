@@ -1,5 +1,6 @@
 package com.finance.tracker.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -9,16 +10,18 @@ public class KeepAliveScheduler {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+
+    @Value("${server.port}")
+    private String port;
+
     @Scheduled(cron = "0 */10 * * * *")
     public void keepAlive() {
         try {
-            restTemplate.getForObject(
-                    "http://localhost:${server.port}/actuator/health",
-                    String.class
-            );
+            String url = "http://localhost:" + port + "/actuator/health";
+            restTemplate.getForObject(url, String.class);
+            System.out.println("Keep alive ping sent");
         } catch (Exception e) {
-            // Log the exception if needed, but ignore it to prevent the scheduler from failing
-            System.err.println("Keep-alive request failed: " + e.getMessage());
+            System.out.println("Keep-alive request failed: " + e.getMessage());
         }
     }
 }
