@@ -19,39 +19,39 @@ public class OllamaConfig {
 
     @Bean
     public WebClient ollamaWebClient(
-            @Value("${ollama.url}") String baseUrl
+            @Value("${spring.ai.ollama.url}") String baseUrl
     ) {
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
-//
-//    @Bean
-//    public ChatLanguageModel chatModel() {
-//        return OllamaChatModel.builder()
-//                .baseUrl("http://localhost:11434")
-//                .modelName("phi3:mini")
-//                .build();
-//    }
-//    @Bean
-//    EmbeddingModel embeddingModel() {
-//        return OllamaEmbeddingModel.builder()
-//                .baseUrl("http://localhost:11434")
-//                .modelName("mxbai-embed-large")
-//                .build();
-//    }
-//    @Bean
-//    public EmbeddingStore<TextSegment> embeddingStore() {
-//
-//        return PgVectorEmbeddingStore.builder()
-//                .host("localhost")
-//                .port(5433)
-//                .database("pgvector")
-//                .user("postgres")
-//                .password("Aashu@123")
-//                .table("documents")
-//                .dimension(1024)
-//                .build();
-//    }
+
+    @Bean
+    public ChatLanguageModel chatModel() {
+        return OllamaChatModel.builder()
+                .baseUrl("http://localhost:11434")
+                .modelName("phi3:mini")
+                .build();
+    }
+    @Bean
+    EmbeddingModel embeddingModel() {
+        return OllamaEmbeddingModel.builder()
+                .baseUrl("http://localhost:11434")
+                .modelName("mxbai-embed-large")
+                .build();
+    }
+    @Bean
+    public EmbeddingStore<TextSegment> embeddingStore() {
+
+        return PgVectorEmbeddingStore.builder()
+                .host("localhost")
+                .port(5433)
+                .database("pgvector")
+                .user("postgres")
+                .password("postgres")
+                .table("documents")
+                .dimension(1024)
+                .build();
+    }
 }

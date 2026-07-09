@@ -15,7 +15,7 @@ public class LLMServiceImpl implements LLMService {
 
     public LLMServiceImpl(
             WebClient ollamaWebClient,
-            @Value("${ollama.model}") String model
+            @Value("${spring.ai.ollama.model}") String model
     ) {
         this.webClient = ollamaWebClient;
         this.model = model;

@@ -6,7 +6,7 @@ spring:
   application:
     name: Finance-Tracking
   profiles:
-    active: prod
+    active: local
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -18,13 +18,17 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Kolkata
+  ai:
+    ollama:
+      url: http://localhost:11434
+      model: qwen2.5-coder:7b
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
 logging:
   level:
-    org.springframework.boot: DEBUG
-ollama:
-  url: http://localhost:11434
-  model: phi3:mini
-  timeout: 60
+    org.springframework.boot: INFO

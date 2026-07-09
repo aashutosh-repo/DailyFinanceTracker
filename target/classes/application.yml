@@ -6,28 +6,29 @@ spring:
   application:
     name: Finance-Tracking
   profiles:
-    active: prod
+    active: local
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/expenseTrecker?sslmode=disable
-    username: postgres
-    password: 123
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
-    naming:
-      physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        jdbc:
+          time_zone: Asia/Kolkata
+  ai:
+    ollama:
+      url: http://localhost:11434
+      model: qwen2.5-coder:7b
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
-
-ollama:
-  url: http://localhost:11434
-  model: phi3:mini
-  timeout: 60
+logging:
+  level:
+    org.springframework.boot: INFO
