@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-schema
+      author: aashuoshkumar6729@
+      sqlFile:
+        path: database/changelog/001-schema.sql
+        relativeToChangelogFile: false
+
+  - changeSet:
+      id: 002-finance-master-data
+      author: you
+      sqlFile:
+        path: database/changelog/002-finance-master-data.sql
+        relativeToChangelogFile: false
+
+  - changeSet:
+      id: 003-sample-data
+      author: you
+      sqlFile:
+        path: database/changelog/003-sample-data.sql
+        relativeToChangelogFile: false

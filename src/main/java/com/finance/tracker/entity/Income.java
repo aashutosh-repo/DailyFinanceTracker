@@ -24,45 +24,45 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class Income extends BaseEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    
+
     @NotNull
-    @Enumerated(EnumType.STRING)
     @Column(name = "source_type", nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
     private IncomeSource sourceType;
-    
+
     @Column(length = 500)
     private String description;
-    
+
     @NotNull
     @DecimalMin("0.01")
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
-    
+
     @Column(nullable = false, length = 3)
     private String currency = "USD";
-    
+
     @NotNull
     @Column(nullable = false)
     private LocalDate incomeDate;
-    
+
     @Column(length = 100)
     private String referenceNumber;
-    
+
     @Column(columnDefinition = "TEXT")
     private String notes;
-    
+
     @Column(nullable = false)
     private Boolean isRecurring = false;
-    
+
     @Column(name = "recurring_income_id")
     private Long recurringIncomeId;
 }
