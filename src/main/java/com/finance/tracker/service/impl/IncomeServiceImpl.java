@@ -1,5 +1,6 @@
 package com.finance.tracker.service.impl;
 
+import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.dto.IncomeDto;
 import com.finance.tracker.entity.Income;
 import com.finance.tracker.entity.User;
@@ -20,13 +21,13 @@ public class IncomeServiceImpl implements IncomeService {
     private final UserRepository userRepository;
 
     @Override
-    public IncomeDto createIncome(IncomeDto incomeDto, Long userId) {
-        User user = userRepository.findById(userId)
+    public IncomeDto createIncome(IncomeDto incomeDto, String userId) {
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Income income = Income.builder()
-//                .user(user)
-                .sourceType(incomeDto.getSourceType())
+                .user(user)
+                .sourceType(IncomeSource.valueOf(incomeDto.getSourceType()))
                 .amount(incomeDto.getAmount())
                 .incomeDate(incomeDto.getIncomeDate())
                 .currency(incomeDto.getCurrency() != null ? incomeDto.getCurrency() : "USD")
@@ -43,7 +44,7 @@ public class IncomeServiceImpl implements IncomeService {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new RuntimeException("Income not found"));
         
-        income.setSourceType(incomeDto.getSourceType());
+        income.setSourceType(IncomeSource.valueOf(incomeDto.getSourceType()));
         income.setAmount(incomeDto.getAmount());
         income.setIncomeDate(incomeDto.getIncomeDate());
         income.setCurrency(incomeDto.getCurrency());
@@ -62,10 +63,10 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeDto> getIncomeByUser(Long userId) {
+    public List<IncomeDto> getIncomeByUser(String userId) {
         List<Income> incomes = incomeRepository.findAll().stream()
-                .filter(i -> i.getUser().getId().equals(userId))
-                .collect(Collectors.toList());
+                .filter(i -> i.getUser().getUserId().equals(userId))
+                .toList();
         return incomes.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -80,7 +81,7 @@ public class IncomeServiceImpl implements IncomeService {
     private IncomeDto mapToDto(Income income) {
         return IncomeDto.builder()
                 .id(income.getId())
-                .sourceType(income.getSourceType())
+                .sourceType(String.valueOf(income.getSourceType()))
                 .amount(income.getAmount())
                 .incomeDate(income.getIncomeDate())
 //                .category(income.getCategory())

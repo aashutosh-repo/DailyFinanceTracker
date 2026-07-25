@@ -19,7 +19,7 @@ public class IncomeController {
     @PostMapping
     public ResponseEntity<IncomeDto> createIncome(
             @RequestBody IncomeDto incomeDto,
-            @RequestParam(defaultValue = "100") Long userId) {
+            @RequestParam(defaultValue = "U100") String userId) {
         try {
             IncomeDto response = incomeService.createIncome(incomeDto, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -39,7 +39,7 @@ public class IncomeController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<IncomeDto>> getUserIncome(@PathVariable Long userId) {
+    public ResponseEntity<List<IncomeDto>> getUserIncome(@PathVariable String userId) {
         try {
             List<IncomeDto> incomes = incomeService.getIncomeByUser(userId);
             return ResponseEntity.ok(incomes);

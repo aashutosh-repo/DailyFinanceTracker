@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class IncomeDto {
     private Long id;
-    private IncomeSource sourceType;
+    private String sourceType;
     private BigDecimal amount;
     private LocalDate incomeDate;
     private String category;
