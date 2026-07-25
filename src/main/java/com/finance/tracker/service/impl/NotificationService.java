@@ -1,4 +1,4 @@
-package com.finance.tracker.service;
+package com.finance.tracker.service.impl;
 
 import com.finance.tracker.entity.Budget;
 import com.finance.tracker.entity.User;
@@ -37,7 +37,7 @@ public class NotificationService {
     /**
      * Send budget exceeded alert notification
      */
-    public void sendBudgetExceededAlert(Long userId, Budget budget, BigDecimal totalSpent) {
+    public void sendBudgetExceededAlert(String userId, Budget budget, BigDecimal totalSpent) {
         log.warn("Sending budget exceeded alert to user: {}", userId);
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "BUDGET_EXCEEDED");
@@ -54,7 +54,7 @@ public class NotificationService {
     /**
      * Send budget threshold alert notification
      */
-    public void sendBudgetThresholdAlert(Long userId, Budget budget, BigDecimal totalSpent) {
+    public void sendBudgetThresholdAlert(String userId, Budget budget, BigDecimal totalSpent) {
         log.info("Sending budget threshold alert to user: {}", userId);
         Map<String, Object> notification = new HashMap<>();
         notification.put("type", "BUDGET_THRESHOLD");
@@ -101,7 +101,7 @@ public class NotificationService {
     /**
      * Send import complete notification
      */
-    public void sendImportCompleteNotification(Long userId, int importedCount, int failedCount) {
+    public void sendImportCompleteNotification(String userId, int importedCount, int failedCount) {
         log.info("Sending import complete notification to user: {} - Imported: {}, Failed: {}", 
             userId, importedCount, failedCount);
         Map<String, Object> notification = new HashMap<>();

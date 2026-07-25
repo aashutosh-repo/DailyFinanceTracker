@@ -11,7 +11,6 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "savings_goals", indexes = {
-    @Index(name = "idx_savings_goals_user_id", columnList = "user_id"),
     @Index(name = "idx_savings_goals_status", columnList = "status"),
     @Index(name = "idx_savings_goals_target_date", columnList = "target_date")
 })
@@ -26,10 +25,13 @@ public class SavingsGoal extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+//    @NotNull
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", nullable = false)
+//    private User user;
+    @NotBlank
+    @Column(nullable = false, length = 255)
+    private String userId;
     
     @NotBlank
     @Column(nullable = false, length = 255)

@@ -16,6 +16,12 @@ public class BudgetRequest {
     
     @NotBlank(message = "Budget name is required")
     private String name;
+
+    @NotBlank(message = "category is required")
+    private String category;
+
+    @NotBlank(message = "UserID is required")
+    private String userId;
     
     @NotNull(message = "Category is required")
     private Long categoryId;

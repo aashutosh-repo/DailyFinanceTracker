@@ -20,7 +20,7 @@ public class BudgetController {
     @PostMapping
     public ResponseEntity<BudgetResponse> createBudget(
             @RequestBody BudgetRequest request,
-            @RequestParam Long userId) {
+            @RequestParam String userId) {
         try {
             BudgetResponse response = budgetService.createBudget(request, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -30,17 +30,17 @@ public class BudgetController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BudgetResponse> getBudget(@PathVariable Long id) {
+    public ResponseEntity<List<BudgetResponse>> getBudget(@PathVariable String id) {
         try {
-            BudgetResponse response = budgetService.getBudgetById(id);
-            return ResponseEntity.ok(response);
+            List<BudgetResponse> responses = budgetService.getBudgetByUserId(id);
+            return ResponseEntity.ok(responses);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BudgetResponse>> getUserBudgets(@PathVariable Long userId) {
+    public ResponseEntity<List<BudgetResponse>> getUserBudgets(@PathVariable String userId) {
         try {
             List<BudgetResponse> budgets = budgetService.getBudgetsByUser(userId);
             return ResponseEntity.ok(budgets);

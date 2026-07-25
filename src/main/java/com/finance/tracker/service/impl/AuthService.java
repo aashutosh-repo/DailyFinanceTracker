@@ -2,10 +2,8 @@ package com.finance.tracker.service.impl;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.UserDto;
-import com.finance.tracker.entity.ExpenseCategory;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.mapper.UserMapper;
-import com.finance.tracker.repository.ExpenseCategoryRepository;
 import com.finance.tracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private final ExpenseCategoryRepository expenseCategoryRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -35,38 +32,11 @@ public class AuthService {
 
         user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         User savedUser = userRepository.save(user);
-        
-        // Create default categories for the new user
-        createDefaultCategories(savedUser);
-        
         UserDto dto = UserMapper.toDto(savedUser);
 
         String token = jwtService.generateToken(savedUser.getEmail());
 
         return new AuthResponse(token, dto);
-    }
-    
-    private void createDefaultCategories(User user) {
-        String[][] defaultCategories = {
-            {"EDUCATION", "#FF6B6B"},
-            {"INVESTMENT", "#4ECDC4"},
-            {"UTILITY", "#FFE66D"},
-            {"SHOPPING", "#95E1D3"},
-            {"GROCERY", "#C0C0FF"},
-            {"TRAVELLING", "#FF9E9E"},
-            {"ADVENTURE", "#7FDBCA"},
-            {"OTHER", "#FF8B9E"}
-        };
-        
-        for (String[] category : defaultCategories) {
-            ExpenseCategory expenseCategory = ExpenseCategory.builder()
-                    .user(user)
-                    .name(category[0])
-                    .colorCode(category[1])
-                    .isDefault(true)
-                    .build();
-            expenseCategoryRepository.save(expenseCategory);
-        }
     }
 
     public AuthResponse login(AuthRequest req) {

@@ -21,27 +21,10 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
-    private final ExpenseCategoryRepository expenseCategoryRepository;
-
-//    public TransactionDto create(TransactionDto dto, String userEmail) {
-//        User user = userRepo.findByEmail(userEmail).orElseThrow();
-//        Transaction t = Transaction.builder()
-//                .user(user)
-//                .txnAmount(dto.getTxnAmount())
-//                .txnType(dto.getTxnType())
-//                .dateOfExpense(dto.getDateOfExpense())
-//                .description(dto.getDescription())
-//                .build();
-//        txRepo.save(t);
-//        dto.setId(t.getId());
-//        dto.setUserId(user.getId());
-//        return dto;
-//    }
-
 
     @Override
     public TransactionDto addExpense(TransactionDto dto) {
-        User user = userRepository.findById(dto.getUserId())
+        User user = userRepository.findByUserId(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + dto.getUserId()));
 
         Transaction expense = TransactionMapper.toEntity(dto, user);
@@ -85,25 +68,25 @@ public class TransactionServiceImpl implements TransactionService {
      */
     private void createExpenseFromTransaction(TransactionDto dto, User user) {
         // Get category - use provided categoryId or fetch default
-        ExpenseCategory category;
-        if (dto.getCategoryId() != null) {
-            category = expenseCategoryRepository
-                    .findByIdAndUserIdAndDeletedAtIsNull(dto.getCategoryId(), user.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category not found for user: " + dto.getCategoryId()
-                    ));
-        } else {
-            // Fallback to "Other" category if available
-            category = expenseCategoryRepository
-                    .findByUserIdAndNameAndDeletedAtIsNull(user.getId(), "Other")
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                        "Default 'Other' category not found for user"
-                    ));
-        }
+//        ExpenseCategory category;
+//        if (dto.getCategoryId() != null) {
+//            category = expenseCategoryRepository
+//                    .findByIdAndUserIdAndDeletedAtIsNull(dto.getCategoryId(), user.getUserId())
+//                    .orElseThrow(() -> new ResourceNotFoundException(
+//                        "Category not found for user: " + dto.getCategoryId()
+//                    ));
+//        } else {
+//            // Fallback to "Other" category if available
+//            category = expenseCategoryRepository
+//                    .findByUserIdAndNameAndDeletedAtIsNull(user.getUserId(), "Other")
+//                    .orElseThrow(() -> new ResourceNotFoundException(
+//                        "Default 'Other' category not found for user"
+//                    ));
+//        }
         
         Expense expense = Expense.builder()
                 .user(user)
-                .category(category)
+//                .category(category)
                 .description(dto.getDescription())
                 .amount(dto.getTxnAmount())
                 .currency("USD")
@@ -133,7 +116,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDto> getAllExpensesByUser(Long userId) {
+    public List<TransactionDto> getAllExpensesByUser(String userId) {
         return transactionRepository.findByUserId(userId)
                 .stream()
                 .map(TransactionMapper::toDto)

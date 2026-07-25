@@ -13,8 +13,8 @@ import java.util.List;
 public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, Long> {
     Page<SavingsGoal> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
-    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId " +
-            "AND sg.status IN ('ACTIVE', 'PAUSED') " +
-            "AND sg.deletedAt IS NULL")
-    List<SavingsGoal> findActiveSavingsGoalsByUser(Long userId);
+//    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId " +
+//            "AND sg.status IN ('ACTIVE', 'PAUSED') " +
+//            "AND sg.deletedAt IS NULL")
+//    List<SavingsGoal> findActiveSavingsGoalsByUser(Long userId);
 }

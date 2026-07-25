@@ -34,6 +34,7 @@ public class Income extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+
     @NotNull
     @Column(name = "source_type", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)

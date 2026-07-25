@@ -24,7 +24,7 @@ public class TransactionController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TransactionDto>> getExpensesByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<TransactionDto>> getExpensesByUser(@PathVariable String userId) {
         return ResponseEntity.ok(txService.getAllExpensesByUser(userId));
     }
 

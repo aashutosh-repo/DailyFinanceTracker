@@ -1,11 +1,8 @@
-package com.finance.tracker.service;
+package com.finance.tracker.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import java.util.*;
 
 /**
  * Cache Service
@@ -63,7 +60,7 @@ public class CacheService {
     /**
      * Invalidate expense cache for a user
      */
-    public void invalidateUserExpenses(Long userId) {
+    public void invalidateUserExpenses(String userId) {
         log.debug("Invalidating expense cache for user: {}", userId);
     }
     

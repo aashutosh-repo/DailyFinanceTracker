@@ -4,7 +4,6 @@ import com.finance.tracker.dto.expense.ExpenseCategoryResponse;
 import com.finance.tracker.dto.expense.ExpenseRequest;
 import com.finance.tracker.dto.expense.ExpenseResponse;
 import com.finance.tracker.entity.Expense;
-import com.finance.tracker.entity.ExpenseCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +34,6 @@ public class ExpenseMapper {
             .notes(expense.getNotes())
             .receiptUrl(expense.getReceiptUrl())
             .isRecurring(expense.getIsRecurring())
-            .category(mapCategoryToResponse(expense.getCategory()))
             .createdAt(expense.getCreatedAt())
             .updatedAt(expense.getUpdatedAt())
             .build();
@@ -61,34 +59,5 @@ public class ExpenseMapper {
         expense.setIsRecurring(request.getIsRecurring());
         
         return expense;
-    }
-    
-    /**
-     * Convert ExpenseRequest DTO to Expense entity (with category)
-     */
-    public Expense toEntity(ExpenseRequest request, ExpenseCategory category) {
-        if (request == null) {
-            return null;
-        }
-        
-        Expense expense = toEntity(request);
-        expense.setCategory(category);
-        
-        return expense;
-    }
-    
-    /**
-     * Map ExpenseCategory to ExpenseCategoryResponse
-     */
-    private ExpenseCategoryResponse mapCategoryToResponse(ExpenseCategory category) {
-        if (category == null) {
-            return null;
-        }
-        
-        return ExpenseCategoryResponse.builder()
-            .id(category.getId())
-            .name(category.getName())
-            .description(category.getDescription())
-            .build();
     }
 }

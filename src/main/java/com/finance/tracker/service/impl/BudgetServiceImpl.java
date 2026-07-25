@@ -1,20 +1,22 @@
 package com.finance.tracker.service.impl;
 
+import com.finance.tracker.constants.BudgetType;
 import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
 import com.finance.tracker.entity.Budget;
-import com.finance.tracker.entity.ExpenseCategory;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.repository.BudgetRepository;
-import com.finance.tracker.repository.ExpenseCategoryRepository;
 import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
+import jakarta.persistence.AssociationOverride;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,22 +25,18 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
-    private final ExpenseCategoryRepository expenseCategoryRepository;
     private final ExpenseRepository expenseRepository;
 
     @Override
-    public BudgetResponse createBudget(BudgetRequest request, Long userId) {
-        User user = userRepository.findById(userId)
+    public BudgetResponse createBudget(BudgetRequest request, String userId) {
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        ExpenseCategory category = expenseCategoryRepository
-            .findByIdAndUserIdAndDeletedAtIsNull(request.getCategoryId(), userId)
-            .orElseThrow(() -> new RuntimeException(
-                "Category not found for this user with ID: " + request.getCategoryId()
-            ));
+
+        BudgetType type = BudgetType.valueOf(request.getCategory());
+        int id = type.getId();
         Budget budget = Budget.builder()
                 .user(user)
-                .category(category)
+                .categoryId(id)
                 .name(request.getName())
                 .amount(request.getAmount())
                 .period(request.getPeriod())
@@ -58,14 +56,7 @@ public class BudgetServiceImpl implements BudgetService {
     public BudgetResponse updateBudget(Long budgetId, BudgetRequest request) {
         Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
-        
-        ExpenseCategory category = expenseCategoryRepository
-    .findByIdAndUserIdAndDeletedAtIsNull(request.getCategoryId(), budget.getUser().getId())
-    .orElseThrow(() -> new RuntimeException(
-        "Category not found for this user with ID: " + request.getCategoryId()
-    ));
 
-        budget.setCategory(category);
         budget.setName(request.getName());
         budget.setAmount(request.getAmount());
         budget.setPeriod(request.getPeriod());
@@ -87,11 +78,22 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public List<BudgetResponse> getBudgetsByUser(Long userId) {
-        List<Budget> budgets = budgetRepository.findAll().stream()
-                .filter(b -> b.getUser().getId().equals(userId))
-                .collect(Collectors.toList());
-        return budgets.stream().map(this::mapToResponse).collect(Collectors.toList());
+    public List<BudgetResponse> getBudgetByUserId(String userId) {
+        Optional<User> user = userRepository.findByUserId(userId);
+        if(user.isEmpty()){
+            return new ArrayList<>();
+        }
+       List<Budget> budget = budgetRepository.findByUser(user.get());
+       List<BudgetResponse> responses = new ArrayList<>();
+       for (Budget b : budget){
+           responses.add(mapToResponse(b));
+       }
+        return responses;
+    }
+
+    @Override
+    public List<BudgetResponse> getBudgetsByUser(String userId) {
+        return getBudgetByUserId(userId);
     }
 
     @Override
@@ -106,35 +108,35 @@ public class BudgetServiceImpl implements BudgetService {
         BigDecimal currentSpending = BigDecimal.ZERO;
         BigDecimal percentageUsed = BigDecimal.ZERO;
         String budgetStatus = "SAFE";
-        
+
         // Calculate current spending for this budget's category within the budget period
-        if (budget.getCategory() != null) {
-            currentSpending = expenseRepository.sumExpensesByCategoryAndDateRange(
-                    budget.getUser().getId(),
-                    budget.getCategory().getId(),
-                    budget.getStartDate(),
-                    budget.getEndDate()
-            );
-            
-            // Calculate percentage used
-            if (budget.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-                percentageUsed = currentSpending
-                        .multiply(BigDecimal.valueOf(100))
-                        .divide(budget.getAmount(), 2, RoundingMode.HALF_UP);
-            }
-            
-            // Determine budget status
-            if (currentSpending.compareTo(budget.getAmount()) > 0) {
-                budgetStatus = "EXCEEDED";
-            } else if (percentageUsed.compareTo(budget.getAlertThreshold() != null ? budget.getAlertThreshold() : BigDecimal.valueOf(80)) >= 0) {
-                budgetStatus = "WARNING";
-            }
-        }
+//        if (budget.getCategoryId() != null) {
+//            currentSpending = expenseRepository.sumExpensesByCategoryAndDateRange(
+//                    budget.getUser().getId(),
+//                    budget.getCategoryId(),
+//                    budget.getStartDate(),
+//                    budget.getEndDate()
+//            );
+//
+//            // Calculate percentage used
+//            if (budget.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+//                percentageUsed = currentSpending
+//                        .multiply(BigDecimal.valueOf(100))
+//                        .divide(budget.getAmount(), 2, RoundingMode.HALF_UP);
+//            }
+//
+//            // Determine budget status
+//            if (currentSpending.compareTo(budget.getAmount()) > 0) {
+//                budgetStatus = "EXCEEDED";
+//            } else if (percentageUsed.compareTo(budget.getAlertThreshold() != null ? budget.getAlertThreshold() : BigDecimal.valueOf(80)) >= 0) {
+//                budgetStatus = "WARNING";
+//            }
+//        }
+        BudgetType type = BudgetType.fromId(budget.getCategoryId());
         
         return BudgetResponse.builder()
                 .id(budget.getId())
-                .categoryId(budget.getCategory() != null ? budget.getCategory().getId() : null)
-                .categoryName(budget.getCategory() != null ? budget.getCategory().getName() : null)
+                .categoryName(type.name())
                 .name(budget.getName())
                 .amount(budget.getAmount())
                 .period(budget.getPeriod())

@@ -12,11 +12,7 @@ import lombok.NoArgsConstructor;
  * Stores user notifications for alerts, reminders, and updates
  */
 @Entity
-@Table(name = "notifications", indexes = {
-    @Index(name = "idx_notifications_user_id", columnList = "user_id"),
-    @Index(name = "idx_notifications_user_id_created_at", columnList = "user_id,created_at"),
-    @Index(name = "idx_notifications_user_id_is_read", columnList = "user_id,is_read")
-})
+@Table(name = "notifications")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -28,9 +24,11 @@ public class Notification extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", nullable = false)
+//    private User user;
+    @Column(nullable = false, length = 50)
+    private String userId;
     
     @Column(nullable = false, length = 50)
     private String type; // EXPENSE_CREATED, BUDGET_EXCEEDED, BUDGET_ALERT, INCOME_ADDED, etc.

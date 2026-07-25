@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Data
 public class TransactionDto {
     private Long id;
-    private Long userId;
+    private String userId;
     private Long categoryId;
     private BigDecimal txnAmount;
     private ExpenseType expenseCategory;

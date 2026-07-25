@@ -11,7 +11,6 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "budgets", indexes = {
-    @Index(name = "idx_budgets_user_id", columnList = "user_id"),
     @Index(name = "idx_budgets_category_id", columnList = "category_id"),
     @Index(name = "idx_budgets_is_active", columnList = "is_active"),
     @Index(name = "idx_budgets_period_dates", columnList = "user_id,start_date,end_date")
@@ -26,19 +25,18 @@ public class Budget extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @NotNull
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private ExpenseCategory category;
     
     @NotBlank
     @Column(nullable = false, length = 255)
     private String name;
+
+    @NotNull(message = "CategoryId cannot be Null")
+    @Column(nullable = false)
+    private Integer categoryId;
     
     @NotNull
     @DecimalMin("0.01")

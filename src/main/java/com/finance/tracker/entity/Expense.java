@@ -14,7 +14,6 @@ import java.util.Set;
 @Entity
 @Table(name = "expenses", indexes = {
     @Index(name = "idx_expenses_user_id", columnList = "user_id"),
-    @Index(name = "idx_expenses_category_id", columnList = "category_id"),
     @Index(name = "idx_expenses_expense_date", columnList = "expense_date"),
     @Index(name = "idx_expenses_user_date", columnList = "user_id,expense_date"),
     @Index(name = "idx_expenses_deleted_at", columnList = "deleted_at")
@@ -34,11 +33,6 @@ public class Expense extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    
-    @NotNull
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id", nullable = false)
-    private ExpenseCategory category;
     
     @Column(length = 500)
     private String description;

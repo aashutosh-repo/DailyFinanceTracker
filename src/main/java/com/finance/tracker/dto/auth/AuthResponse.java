@@ -15,8 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class AuthResponse {
-
-    private Long userId;
+    private String userId;
     private String username;
     private String email;
     private String fullName;

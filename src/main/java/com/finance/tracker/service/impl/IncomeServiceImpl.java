@@ -25,7 +25,7 @@ public class IncomeServiceImpl implements IncomeService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Income income = Income.builder()
-                .user(user)
+//                .user(user)
                 .sourceType(incomeDto.getSourceType())
                 .amount(incomeDto.getAmount())
                 .incomeDate(incomeDto.getIncomeDate())

@@ -24,13 +24,11 @@
 package com.personalfinance.service;
 
 import com.finance.tracker.entity.Expense;
-import com.finance.tracker.entity.ExpenseCategory;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.dto.expense.*;
 import com.finance.tracker.repository.BudgetRepository;
-import com.finance.tracker.repository.ExpenseCategoryRepository;
 import com.finance.tracker.repository.ExpenseRepository;
-import com.finance.tracker.service.ExpenseService;
+import com.finance.tracker.service.impl.ExpenseService;
 import com.personalfinance.mapper.ExpenseMapper;
 import com.personalfinance.exception.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -284,9 +282,7 @@ class ExpenseServiceTest {
 package com.personalfinance.integration;
 
 import com.finance.tracker.entity.Expense;
-import com.finance.tracker.entity.ExpenseCategory;
 import com.finance.tracker.entity.User;
-import com.finance.tracker.repository.ExpenseCategoryRepository;
 import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.personalfinance.DailyFinanceTrackerApplication;
@@ -483,7 +479,6 @@ class ExpenseControllerIntegrationTest {
 package com.personalfinance.controller;
 
 import com.finance.tracker.dto.expense.*;
-import com.finance.tracker.service.ExpenseService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -509,7 +504,7 @@ class ExpenseControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private ExpenseService expenseService;
+    private com.finance.tracker.service.impl.ExpenseService expenseService;
 
     @Test
     @WithMockUser
