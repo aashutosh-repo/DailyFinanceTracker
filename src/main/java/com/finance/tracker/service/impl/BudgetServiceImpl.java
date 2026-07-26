@@ -1,5 +1,6 @@
 package com.finance.tracker.service.impl;
 
+import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.constants.BudgetType;
 import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
@@ -9,15 +10,14 @@ import com.finance.tracker.repository.BudgetRepository;
 import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
-import jakarta.persistence.AssociationOverride;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,7 @@ public class BudgetServiceImpl implements BudgetService {
         int id = type.getId();
         Budget budget = Budget.builder()
                 .user(user)
+                .extUserId(user.getUserId())
                 .categoryId(id)
                 .name(request.getName())
                 .amount(request.getAmount())
@@ -79,6 +80,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public List<BudgetResponse> getBudgetByUserId(String userId) {
+        BigDecimal budgetAmt = getMonthlyBudgets(userId, YearMonth.now());
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isEmpty()){
             return new ArrayList<>();
@@ -102,6 +104,29 @@ public class BudgetServiceImpl implements BudgetService {
             throw new RuntimeException("Budget not found");
         }
         budgetRepository.deleteById(budgetId);
+    }
+
+    @Override
+    public BigDecimal getMonthlyBudgets(String userId, YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return budgetRepository.getMonthlyBudget(userId, "MONTHLY", start, end);
+    }
+
+    public List<BudgetStatus> getMonthlyBudgetsStatus(String userId, YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        List<BudgetStatus> status = new ArrayList<>();
+        List<Budget> availableBudget = budgetRepository.getMonthlyBudgetStatus(userId, "MONTHLY", start, end);
+        for(Budget b : availableBudget){
+            BudgetStatus temp = new BudgetStatus();
+            temp.setCategory(String.valueOf(BudgetType.fromId(b.getCategoryId())));
+            temp.setBudget(b.getAmount());
+            temp.setActual(b.getAmount());
+            temp.setExceeded(false);
+            status.add(temp);
+        }
+        return status;
     }
 
     private BudgetResponse mapToResponse(Budget budget) {

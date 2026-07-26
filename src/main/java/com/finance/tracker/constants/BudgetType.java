@@ -1,5 +1,8 @@
 package com.finance.tracker.constants;
 
+import lombok.Getter;
+
+@Getter
 public enum BudgetType {
 
     EDUCATION(1),
@@ -17,9 +20,6 @@ public enum BudgetType {
         this.id = id;
     }
 
-    public int getId() {
-        return id;
-    }
     public static int getExpenseTypeId(String type) {
         return BudgetType.valueOf(type.toUpperCase()).getId();
     }
