@@ -8,7 +8,6 @@ import com.finance.tracker.exception.ForbiddenException;
 import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.exception.ValidationException;
 import com.finance.tracker.mapper.ExpenseMapper;
-import com.finance.tracker.repository.BudgetRepository;
 import com.finance.tracker.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,6 @@ import java.util.*;
 public class ExpenseService {
     
     private final ExpenseRepository expenseRepository;
-    private final BudgetRepository budgetRepository;
     private final NotificationService notificationService;
     private final ExpenseMapper expenseMapper;
     private final CacheService cacheService;

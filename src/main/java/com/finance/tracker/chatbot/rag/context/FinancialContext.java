@@ -1,35 +1,33 @@
 package com.finance.tracker.chatbot.rag.context;
 
+import lombok.Builder;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.List;
 
-public class FinancialContext {
+@Builder
+public record FinancialContext(
+        String userId,
+        YearMonth month,
 
-    private Long userId;
-    private YearMonth month;
+        // Income
+        BigDecimal totalIncome,
 
-    // Income
+        // Expense
+        BigDecimal totalExpense,
+        List<CategoryExpense> categoryExpenses,
 
-    private BigDecimal totalIncome;
+        // Savings
+        BigDecimal totalSavings,
 
-    // Expense
-    private BigDecimal totalExpense;
-    private List<CategoryExpense> categoryExpenses;
+        // Budgets
+        List<BudgetStatus> budgetStatuses,
 
-    // Savings
-    private BigDecimal totalSavings;
 
-    // Budgets
-    private List<BudgetStatus> budgetStatuses;
 
-    // Goals
-//    private List<SavingsGoalContext> savingsGoals;
+        // Historical comparison
+        List<MonthlyComparison> comparisons
 
-    // Alerts
-//    private List<BudgetAlertContext> alerts;
-
-    // Historical comparison
-    private List<MonthlyComparison> comparisons;
-
-}
+) {}

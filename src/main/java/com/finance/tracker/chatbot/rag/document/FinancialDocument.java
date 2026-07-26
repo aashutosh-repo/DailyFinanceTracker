@@ -1,14 +1,22 @@
 package com.finance.tracker.chatbot.rag.document;
 
+import lombok.Getter;
+import org.springframework.ai.document.Document;
+
 import java.util.Map;
 
+@Getter
 public class FinancialDocument {
 
-    private String id;
-    private Long userId;
-    private DocumentType documentType;
-    private String title;
-    private String content;
-    private Map<String, Object> metadata;
+    private final Document document;
+
+    private final DocumentType type;
+
+    public FinancialDocument(Document document,
+                             DocumentType type) {
+
+        this.document = document;
+        this.type = type;
+    }
 
 }
