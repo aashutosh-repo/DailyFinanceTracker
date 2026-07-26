@@ -19,9 +19,18 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "AND i.deletedAt IS NULL")
     List<Income> findByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
-            "WHERE i.user.id = :userId " +
-            "AND i.incomeDate BETWEEN :startDate AND :endDate " +
-            "AND i.deletedAt IS NULL")
-    java.math.BigDecimal sumIncomeByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+    @Query("""
+        SELECT COALESCE(SUM(i.amount), 0) FROM Income i
+        WHERE i.extUserId = :userId
+          AND YEAR(i.incomeDate) = :year
+          AND MONTH(i.incomeDate) = :month
+    """)
+    java.math.BigDecimal sumIncomeByUserAndDateRange(String userId, int year, int month);
+
+    @Query("""
+        SELECT COALESCE(SUM(i.amount), 0) FROM Income i
+        WHERE i.extUserId = :userId
+          AND YEAR(i.incomeDate) = :year
+    """)
+    java.math.BigDecimal sumIncomeByUserAndYear(String userId, int year);
 }

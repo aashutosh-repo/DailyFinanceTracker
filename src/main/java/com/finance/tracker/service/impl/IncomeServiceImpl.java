@@ -9,7 +9,11 @@ import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.IncomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +31,7 @@ public class IncomeServiceImpl implements IncomeService {
         
         Income income = Income.builder()
                 .user(user)
+                .extUserId(user.getUserId())
                 .sourceType(IncomeSource.valueOf(incomeDto.getSourceType()))
                 .amount(incomeDto.getAmount())
                 .incomeDate(incomeDto.getIncomeDate())
@@ -76,6 +81,17 @@ public class IncomeServiceImpl implements IncomeService {
             throw new RuntimeException("Income not found");
         }
         incomeRepository.deleteById(incomeId);
+    }
+
+    @Override
+    public BigDecimal getTotalIncomeOfYear(String userId, YearMonth month) {
+        List<Income> incomes = new ArrayList<>();
+        return incomeRepository.sumIncomeByUserAndYear(userId, month.getYear());
+    }
+
+    @Override
+    public BigDecimal getIncomeByMonth(String userId, YearMonth month) {
+        return incomeRepository.sumIncomeByUserAndDateRange(userId, month.getYear(), month.getMonth().getValue());
     }
 
     private IncomeDto mapToDto(Income income) {
