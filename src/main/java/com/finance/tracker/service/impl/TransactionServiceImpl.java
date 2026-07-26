@@ -1,5 +1,6 @@
 package com.finance.tracker.service.impl;
 
+import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.constants.ExpenseType;
 import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.dto.TransactionDto;
@@ -11,7 +12,13 @@ import com.finance.tracker.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -117,7 +124,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<TransactionDto> getAllExpensesByUser(String userId) {
-        return transactionRepository.findByUserId(userId)
+        return transactionRepository.findByExtUserId(userId)
                 .stream()
                 .map(TransactionMapper::toDto)
                 .toList();
@@ -133,5 +140,37 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteExpense(Long id) {
         transactionRepository.deleteById(id);
+    }
+
+    @Override
+    public BigDecimal getTotalExpense(String userId, YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return transactionRepository.getTotalExpense(userId, start, end);
+    }
+
+    @Override
+    public List<CategoryExpense> getCategoryExpenses(String userId, YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return transactionRepository
+            .getCategoryExpenses(userId, start, end)
+                .stream()
+                .map(row -> new CategoryExpense(
+                        ((ExpenseType) row[0]).name(),
+                        (BigDecimal) row[1]
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<TransactionDto> getExpensesByMonth(String userId, YearMonth month) {
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+        return transactionRepository
+                .getExpensesByMonth(userId, start, end)
+                .stream()
+                .map(TransactionMapper::toDto)
+                .toList();
     }
 }

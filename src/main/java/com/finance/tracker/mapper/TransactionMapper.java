@@ -31,8 +31,8 @@ public class TransactionMapper {
 
         Transaction transaction = new Transaction();
         transaction.setId(dto.getId());
-//        transaction.setUser(user);
-        transaction.setUserId(dto.getUserId());
+        transaction.setUser(user);
+        transaction.setExtUserId(dto.getUserId());
         transaction.setTxnAmount(dto.getTxnAmount());
         transaction.setTxnType(dto.getTxnType());
         transaction.setTypeOfExpense(dto.getExpenseCategory());
