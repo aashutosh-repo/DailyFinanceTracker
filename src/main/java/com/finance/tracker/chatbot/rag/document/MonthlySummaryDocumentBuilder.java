@@ -37,11 +37,8 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         StringBuilder sb = new StringBuilder();
 
         appendHeader(sb, context);
-
         appendExpenseBreakdown(sb, context);
-
         appendBudgetStatus(sb, context);
-
         appendFinancialHighlights(sb, context);
 
         return sb.toString();

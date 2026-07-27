@@ -1,5 +1,6 @@
 package com.finance.tracker.chatbot.controller;
 
+import com.finance.tracker.chatbot.indexing.FinancialIndexingService;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.rag.document.DocumentFactory;
 import com.finance.tracker.chatbot.rag.document.FinancialDocument;
@@ -26,6 +27,7 @@ public class ChatController {
     private final FinancialContextService financialContextService;
     private final LLMService llmService;
     private final MonthlySummaryDocumentBuilder factory;
+    private final FinancialIndexingService service;
 
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -34,9 +36,10 @@ public class ChatController {
     ) {
         try {
             FinancialContext context = financialContextService.getMonthlyContext("U1002", YearMonth.now());
-            FinancialDocument document =
-                    factory.build(context);
+            FinancialDocument document = factory.build(context);
             System.out.println(document.getDocument().getText());
+            service.indexMonthlySummary("U1002",YearMonth.now());
+
             String message = request.getMessage();
 
             if (message == null || message.trim().isEmpty()) {
