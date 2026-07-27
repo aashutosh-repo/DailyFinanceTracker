@@ -16,5 +16,5 @@ public interface BudgetService {
     List<BudgetResponse> getBudgetsByUser(String userId);
     void deleteBudget(Long budgetId);
     BigDecimal getMonthlyBudgets(String userId, YearMonth month);
-    List<BudgetStatus> getMonthlyBudgetsStatus(String userId, YearMonth mponth);
+    List<BudgetStatus> getMonthlyBudgetsStatus(String userId, YearMonth month);
 }

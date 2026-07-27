@@ -3,8 +3,6 @@ package com.finance.tracker.chatbot.rag.document;
 import lombok.Getter;
 import org.springframework.ai.document.Document;
 
-import java.util.Map;
-
 @Getter
 public class FinancialDocument {
 

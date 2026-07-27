@@ -24,9 +24,7 @@ public record FinancialContext(
 
         // Budgets
         List<BudgetStatus> budgetStatuses,
-
-
-
+        BigDecimal savingsRate,
         // Historical comparison
         List<MonthlyComparison> comparisons
 
