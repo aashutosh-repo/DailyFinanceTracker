@@ -27,9 +27,25 @@ spring:
       url: http://localhost:11434
       model-chat: qwen2.5-coder:7b
       model-embedding: nomic-embed-text
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 1024
+        index-type: hnsw
+        distance-type: cosine_distance
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
 logging:
   level:
     org.springframework.boot: INFO
+
+vector:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/vectordb
+    username: postgres
+    password: postgres
+
+  store:
+    initialize-schema: true
+    dimensions: 1024

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS documents (
     embedding_id TEXT PRIMARY KEY,
     content TEXT,
     metadata JSONB,
-    embedding VECTOR(768)
+    embedding VECTOR(1024)
 );
 
 -- index for similarity search

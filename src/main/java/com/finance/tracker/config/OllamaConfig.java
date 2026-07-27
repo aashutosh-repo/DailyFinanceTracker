@@ -38,7 +38,7 @@ public class OllamaConfig {
     EmbeddingModel embeddingModel() {
         return OllamaEmbeddingModel.builder()
                 .baseUrl("http://localhost:11434")
-                .modelName("mxbai-embed-large")
+                .modelName("nomic-embed-text:latest")
                 .build();
     }
     @Bean
@@ -47,7 +47,7 @@ public class OllamaConfig {
         return PgVectorEmbeddingStore.builder()
                 .host("localhost")
                 .port(5433)
-                .database("pgvector")
+                .database("postgres")
                 .user("postgres")
                 .password("postgres")
                 .table("documents")
