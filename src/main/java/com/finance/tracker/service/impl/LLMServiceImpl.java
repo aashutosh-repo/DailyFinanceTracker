@@ -15,42 +15,46 @@ public class LLMServiceImpl implements LLMService {
 
     public LLMServiceImpl(
             WebClient ollamaWebClient,
-            @Value("${spring.ai.ollama.model-chat}") String model
-    ) {
+            @Value("${spring.ai.ollama.model-chat}") String model) {
+
         this.webClient = ollamaWebClient;
         this.model = model;
     }
 
     @Override
     public String getLLMResponse(String prompt) {
-        return "";
-    }
-
-    public String askLLM(String userPrompt) {
-
-        String prompt = """
-                You are a helpful AI assistant.
-                Answer clearly and concisely.
-
-                User Question:
-                %s
-                """.formatted(userPrompt);
 
         OllamaRequest request =
-                new OllamaRequest(model, prompt, false,
-                        new OllamaRequest.Options(520, 1024, 0.4));
+                new OllamaRequest(
+                        model,
+                        prompt,
+                        false,
+                        new OllamaRequest.Options(
+                                520,
+                                1024,
+                                0.4
+                        ));
 
-        String ExecutionStartTime = String.valueOf(System.currentTimeMillis());
-        String response =  webClient.post()
-                .uri("/api/generate")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(OllamaResponse.class)
-                .map(OllamaResponse::response)
-                .block();
-        String executionEndTime = String.valueOf(System.currentTimeMillis());
-        System.out.println("LLM Execution Time: " + (Long.parseLong(executionEndTime) - Long.parseLong(ExecutionStartTime)) + " ms");
-        System.out.println(response);
-        return response != null ? response.trim() : "";
+        long start = System.currentTimeMillis();
+
+        OllamaResponse response =
+                webClient.post()
+                        .uri("/api/generate")
+                        .bodyValue(request)
+                        .retrieve()
+                        .bodyToMono(OllamaResponse.class)
+                        .block();
+
+        System.out.println(
+                "LLM Execution Time : "
+                        + (System.currentTimeMillis() - start)
+                        + " ms");
+
+        return response == null ? "" : response.response().trim();
+    }
+
+    @Override
+    public String askLLM(String prompt) {
+        return "";
     }
 }
