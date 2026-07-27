@@ -21,5 +21,7 @@ public class ChatResponse {
     public static class ChatData {
         private String response;
         private String conversationId;
+        private Integer retrievedDocuments;
+        private Long responseTimeMs;
     }
 }
