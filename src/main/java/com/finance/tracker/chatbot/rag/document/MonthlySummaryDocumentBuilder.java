@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +51,10 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("userId", context.userId());
         metadata.put("month", context.month().toString());
-        metadata.put("type", DocumentType.MONTHLY_SUMMARY.name());
+        metadata.put("year", context.month().getYear());
+        metadata.put("documentType", DocumentType.MONTHLY_SUMMARY.name());
+        metadata.put("createdAt", Instant.now().toString());
+        metadata.put("version", 1);
         return metadata;
     }
     private void appendHeader(StringBuilder sb,
