@@ -1,6 +1,8 @@
 package com.finance.tracker.chatbot.controller;
 
 import com.finance.tracker.chatbot.indexing.FinancialIndexingService;
+import com.finance.tracker.chatbot.memory.ConversationMessage;
+import com.finance.tracker.chatbot.memory.ConversationService;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.rag.document.DocumentFactory;
 import com.finance.tracker.chatbot.rag.document.FinancialDocument;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.YearMonth;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -28,6 +32,7 @@ public class ChatController {
     private final LLMService llmService;
     private final MonthlySummaryDocumentBuilder factory;
     private final FinancialIndexingService service;
+    private final ConversationService conversationService;
 
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -38,6 +43,13 @@ public class ChatController {
             FinancialContext context = financialContextService.getMonthlyContext("U1002", YearMonth.now());
             FinancialDocument document = factory.build(context);
             System.out.println(document.getDocument().getText());
+            ///test
+            UUID id = conversationService.createConversation("U1002");
+
+            conversationService.saveUserMessage(id, "Hello");
+            conversationService.saveAssistantMessage(id, "Hi");
+            List<ConversationMessage> history = conversationService.getConversationHistory(id);
+        ///
             service.indexMonthlySummary("U1002",YearMonth.now());
 
             String message = request.getMessage();

@@ -1,5 +1,6 @@
 package com.finance.tracker.chatbot.memory;
 
+import com.finance.tracker.chatbot.constants.MessageRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +22,8 @@ public class ConversationMessage {
 
     private UUID conversationId;
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private MessageRole role;
 
     @Column(columnDefinition = "TEXT")
     private String message;
