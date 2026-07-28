@@ -1,6 +1,7 @@
 package com.finance.tracker.chatbot.services.impl;
 
 import com.finance.tracker.chatbot.prompt.PromptBuilder;
+import com.finance.tracker.chatbot.prompt.PromptOrchestrator;
 import com.finance.tracker.chatbot.retrieval.RetrievalService;
 import com.finance.tracker.chatbot.services.ChatService;
 import com.finance.tracker.dto.chatbot.ChatResponse;
@@ -17,22 +18,15 @@ import java.util.UUID;
 public class ChatServiceImpl implements ChatService {
 
     private final RetrievalService retrievalService;
-    private final PromptBuilder promptBuilder;
+    private final PromptOrchestrator promptOrchestrator;
     private final LLMService llmService;
 
     @Override
-    public ChatResponse chat(String userId,
-                             String question) {
+    public ChatResponse chat(String userId, String question) {
         long start = System.currentTimeMillis();
-        List<Document> documents =
-                retrievalService.retrieveRelevantDocuments(
-                        question,
-                        userId);
+        List<Document> documents = retrievalService.retrieveRelevantDocuments(question, userId);
 
-        String prompt =
-                promptBuilder.buildPrompt(
-                        question,
-                        documents);
+        String prompt = promptOrchestrator.buildPrompt(question, documents);
 
         String answer =
                 llmService.getLLMResponse(prompt);

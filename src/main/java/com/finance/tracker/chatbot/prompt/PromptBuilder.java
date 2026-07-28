@@ -5,5 +5,5 @@ import java.util.List;
 
 public interface PromptBuilder {
 
-    String buildPrompt(String question, List<Document> documents);
+    String buildPrompt(List<Document> documents);
 }
