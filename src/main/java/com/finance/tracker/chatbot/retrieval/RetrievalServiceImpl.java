@@ -23,34 +23,20 @@ public class RetrievalServiceImpl implements RetrievalService{
             String question,
             String userId) {
 
-        SearchRequest request =
-                factory.forUser(question, userId);
+        SearchRequest request = factory.forUser(question, userId);
+        List<Document> documents = vectorStore.similaritySearch(request);
 
-        List<Document> documents =
-                vectorStore.similaritySearch(request);
         log.info("Question: {}", question);
-
         log.info("Retrieved {} documents", documents.size());
 
-        documents.forEach(document ->
-                log.info("Score={} Metadata={}",
-                        document.getScore(),
-                        document.getMetadata()));
-        if (documents.isEmpty()) {
+        documents.forEach(document -> {
+            log.info("----------------------------");
+            log.info("Score     : {}", document.getScore());
+            log.info("Metadata  : {}", document.getMetadata());
+            log.info("Preview   : {}",
+                    document.getText().substring(0, Math.min(120, document.getText().length())));
+        });
 
-        ChatResponse response= ChatResponse.builder()
-                    .success(true)
-                    .message("Success")
-                    .data(ChatResponse.ChatData.builder()
-                            .response(
-                                    "I couldn't find any financial information related to your question. Please check that your financial data has been added for the requested period.")
-                            .conversationId("1")
-                            .retrievedDocuments(0)
-                            .responseTimeMs(0l)
-                            .build())
-                    .build();
-            log.error(response);
-        }
-        return vectorStore.similaritySearch(request);
+        return documents;
     }
 }
