@@ -4,10 +4,12 @@ import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.dto.IncomeDto;
 import com.finance.tracker.entity.Income;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.IncomeRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.IncomeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public IncomeDto createIncome(IncomeDto incomeDto, String userId) {
@@ -35,12 +38,15 @@ public class IncomeServiceImpl implements IncomeService {
                 .sourceType(IncomeSource.valueOf(incomeDto.getSourceType()))
                 .amount(incomeDto.getAmount())
                 .incomeDate(incomeDto.getIncomeDate())
-                .currency(incomeDto.getCurrency() != null ? incomeDto.getCurrency() : "USD")
+                .currency(incomeDto.getCurrency() != null ? incomeDto.getCurrency() : "INR")
                 .description(incomeDto.getDescription())
                 .isRecurring(false)
                 .build();
         
         Income saved = incomeRepository.save(income);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(userId, YearMonth.from(saved.getIncomeDate()))
+        );
         return mapToDto(saved);
     }
 
@@ -57,6 +63,9 @@ public class IncomeServiceImpl implements IncomeService {
         income.setUpdatedAt(LocalDateTime.now());
         
         Income updated = incomeRepository.save(income);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(updated.getExtUserId(), YearMonth.from(updated.getIncomeDate()))
+        );
         return mapToDto(updated);
     }
 
@@ -85,7 +94,6 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public BigDecimal getTotalIncomeOfYear(String userId, YearMonth month) {
-        List<Income> incomes = new ArrayList<>();
         return incomeRepository.sumIncomeByUserAndYear(userId, month.getYear());
     }
 

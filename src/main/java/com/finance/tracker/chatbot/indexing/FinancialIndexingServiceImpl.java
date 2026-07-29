@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,19 +23,15 @@ public class FinancialIndexingServiceImpl implements FinancialIndexingService{
     private final VectorStore vectorStore;
     @Override
     public void indexMonthlySummary(String userId, YearMonth month) {
-        FinancialContext context =
-                analyticsService.getMonthlyContext(userId, month);
+        String businessKey  = userId + ":" + month + ":MONTHLY_SUMMARY";
+        FinancialContext context = analyticsService.getMonthlyContext(userId, month);
 
-        FinancialDocument document =
-                documentFactory.create(
-                        DocumentType.MONTHLY_SUMMARY,
-                        context
-                );
+        FinancialDocument document = documentFactory.create(DocumentType.MONTHLY_SUMMARY, context);
+
         System.out.println("Documents: "+document.getDocument().getText());
-
-        vectorStore.add(
-                List.of(document.getDocument())
-        );
+        UUID documentId = UUID.nameUUIDFromBytes(businessKey.getBytes(StandardCharsets.UTF_8));
+        vectorStore.delete(List.of(documentId.toString()));
+        vectorStore.add(List.of(document.getDocument()));
     }
 
     @Override

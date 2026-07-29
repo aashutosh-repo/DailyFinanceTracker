@@ -11,11 +11,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class DocumentFactory {
-    private final Map<DocumentType,
-                FinancialDocumentBuilder> builders;
+    private final Map<DocumentType, FinancialDocumentBuilder> builders;
 
-    public DocumentFactory(
-            List<FinancialDocumentBuilder> list) {
+    public DocumentFactory(List<FinancialDocumentBuilder> list) {
 
         this.builders = list.stream()
                 .collect(Collectors.toMap(
@@ -25,15 +23,9 @@ public class DocumentFactory {
 
     }
 
-    public FinancialDocument create(
-
-            DocumentType type,
-
-            FinancialContext context) {
+    public FinancialDocument create(DocumentType type, FinancialContext context) {
 
         return builders.get(type)
-
                 .build(context);
-
     }
 }

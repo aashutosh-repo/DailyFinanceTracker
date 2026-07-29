@@ -1,7 +1,6 @@
 package com.finance.tracker.service.impl;
 
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
-import com.finance.tracker.constants.ExpenseType;
 import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.dto.TransactionDto;
@@ -20,8 +19,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +38,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction expense = TransactionMapper.toEntity(dto, user);
         if(expense.getTypeOfExpense()==null){
-            expense.setTypeOfExpense(TransactionCategory
-                    .OTHER);
+            expense.setTypeOfExpense(TransactionCategory.OTHER);
         }
 
         Transaction saved = transactionRepository.save(expense);
@@ -166,7 +162,7 @@ public class TransactionServiceImpl implements TransactionService {
             .getCategoryExpenses(userId, start, end)
                 .stream()
                 .map(row -> new CategoryExpense(
-                        ((ExpenseType) row[0]).name(),
+                        ((TransactionCategory) row[0]).name(),
                         (BigDecimal) row[1]
                 ))
                 .toList();

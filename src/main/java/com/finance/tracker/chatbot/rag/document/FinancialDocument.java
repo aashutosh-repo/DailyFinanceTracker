@@ -7,12 +7,10 @@ import org.springframework.ai.document.Document;
 public class FinancialDocument {
 
     private final Document document;
-
     private final DocumentType type;
 
     public FinancialDocument(Document document,
                              DocumentType type) {
-
         this.document = document;
         this.type = type;
     }

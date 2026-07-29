@@ -1,6 +1,6 @@
 package com.finance.tracker.service.impl;
 
-import com.finance.tracker.constants.ExpenseType;
+import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.entity.Transaction;
 import com.finance.tracker.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
-import java.lang.annotation.Documented;
 import java.nio.file.Files;
 
 @Service
@@ -47,7 +45,7 @@ public class FileProcessingServices {
         for (int i = 0; i < transactions.getLength(); i++) {
             Element transactionElement = (Element) transactions.item(i);
             Transaction txn = new Transaction();
-            txn.setTypeOfExpense(ExpenseType.valueOf(transactionElement.getAttribute("Type")));
+            txn.setTypeOfExpense(TransactionCategory.valueOf(transactionElement.getAttribute("Type")));
             txn.setDescription(transactionElement.getAttribute("Description"));
             txn.setDateOfExpense(java.time.LocalDate.parse(transactionElement.getAttribute("Date")));
             txn.setTxnAmount(new java.math.BigDecimal(transactionElement.getAttribute("Amount")));

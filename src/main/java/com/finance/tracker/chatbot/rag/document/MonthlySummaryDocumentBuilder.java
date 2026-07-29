@@ -23,9 +23,7 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
     @Override
     public FinancialDocument build(FinancialContext context) {
         String content = buildContent(context);
-
         Map<String, Object> metadata = buildMetadata(context);
-
         Document document = new Document(content, metadata);
 
         return new FinancialDocument(
@@ -45,15 +43,16 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         return sb.toString();
     }
 
-    private Map<String, Object> buildMetadata(
-            FinancialContext context) {
+    private Map<String, Object> buildMetadata(FinancialContext context) {
+        String businessKey = context.userId() + "_" + context.month() + "_MONTHLY_SUMMARY";
 
         Map<String, Object> metadata = new HashMap<>();
+        metadata.put("businessKey", businessKey);
         metadata.put("userId", context.userId());
         metadata.put("month", context.month().toString());
         metadata.put("year", context.month().getYear());
         metadata.put("documentType", DocumentType.MONTHLY_SUMMARY.name());
-        metadata.put("createdAt", Instant.now().toString());
+        metadata.put("indexedAt", Instant.now().toString());
         metadata.put("version", 1);
         return metadata;
     }
@@ -141,22 +140,15 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         sb.append("Financial Highlights\n");
         sb.append("--------------------\n");
 
-        CategoryExpense largestExpense =
-                context.categoryExpenses()
-                        .stream()
-                        .max(Comparator.comparing(CategoryExpense::getAmount))
-                        .orElse(null);
+        context.categoryExpenses()
+                .stream()
+                .max(Comparator.comparing(CategoryExpense::getAmount)).ifPresent(largestExpense -> sb.append("• Largest spending category is ")
+                        .append(largestExpense.getCategory())
+                        .append(" ($")
+                        .append(largestExpense.getAmount())
+                        .append(").\n"));
 
-        if (largestExpense != null) {
-
-            sb.append("• Largest spending category is ")
-                    .append(largestExpense.getCategory())
-                    .append(" ($")
-                    .append(largestExpense.getAmount())
-                    .append(").\n");
-        }
-
-//        if (context.savingsRate() != null) {
+        //        if (context.savingsRate() != null) {
 //
 //            if (context.savingsRate()
 //                    .compareTo(BigDecimal.valueOf(20)) >= 0) {
