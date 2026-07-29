@@ -3,14 +3,17 @@ package com.finance.tracker.service.impl;
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.constants.ExpenseType;
 import com.finance.tracker.constants.IncomeSource;
+import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.dto.TransactionDto;
 import com.finance.tracker.entity.*;
+import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.TransactionMapper;
 import com.finance.tracker.repository.*;
 import com.finance.tracker.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,6 +31,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     public TransactionDto addExpense(TransactionDto dto) {
@@ -36,10 +41,14 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction expense = TransactionMapper.toEntity(dto, user);
         if(expense.getTypeOfExpense()==null){
-            expense.setTypeOfExpense(ExpenseType.OTHER);
+            expense.setTypeOfExpense(TransactionCategory
+                    .OTHER);
         }
 
         Transaction saved = transactionRepository.save(expense);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(user.getUserId(), YearMonth.from(saved.getDateOfExpense()))
+        );
         dto.setId(saved.getId());
         
         // Sync to EXPENSES or INCOME table based on transaction type

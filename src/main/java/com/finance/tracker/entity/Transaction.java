@@ -1,6 +1,7 @@
 package com.finance.tracker.entity;
 
 import com.finance.tracker.constants.ExpenseType;
+import com.finance.tracker.constants.TransactionCategory;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private ExpenseType typeOfExpense;
+    private TransactionCategory typeOfExpense;
 
     @Column(length = 500)
     private String description;
