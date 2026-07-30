@@ -15,13 +15,9 @@ public class FinancialIndexListener {
     private final FinancialIndexingService indexingService;
 
     @EventListener
-    public void handleFinancialDataChanged(
-            FinancialDataChangedEvent event) {
+    public void handleFinancialDataChanged(FinancialDataChangedEvent event) {
 
-        log.info(
-                "Reindexing financial data for user {} month {}",
-                event.getUserId(),
-                event.getMonth());
+        log.info("Reindexing financial data for user {} month {}", event.getUserId(), event.getMonth());
 
         indexingService.indexMonthlySummary(
                 event.getUserId(),

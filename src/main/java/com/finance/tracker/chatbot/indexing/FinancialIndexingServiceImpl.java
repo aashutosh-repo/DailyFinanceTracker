@@ -5,6 +5,7 @@ import com.finance.tracker.chatbot.rag.document.DocumentFactory;
 import com.finance.tracker.chatbot.rag.document.DocumentType;
 import com.finance.tracker.chatbot.rag.document.FinancialDocument;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
+import com.finance.tracker.service.VectorDocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,16 @@ public class FinancialIndexingServiceImpl implements FinancialIndexingService{
     private final FinancialAnalyticsService analyticsService;
     private final DocumentFactory documentFactory;
     private final VectorStore vectorStore;
+    private final VectorDocumentService vectorDocumentService;
+
     @Override
     public void indexMonthlySummary(String userId, YearMonth month) {
-        String businessKey  = userId + ":" + month + ":MONTHLY_SUMMARY";
         FinancialContext context = analyticsService.getMonthlyContext(userId, month);
 
         FinancialDocument document = documentFactory.create(DocumentType.MONTHLY_SUMMARY, context);
 
         System.out.println("Documents: "+document.getDocument().getText());
-        UUID documentId = UUID.nameUUIDFromBytes(businessKey.getBytes(StandardCharsets.UTF_8));
-        vectorStore.delete(List.of(documentId.toString()));
+        vectorDocumentService.deleteMonthlySummary(userId, month);
         vectorStore.add(List.of(document.getDocument()));
     }
 

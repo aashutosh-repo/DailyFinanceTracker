@@ -3,6 +3,8 @@ package com.finance.tracker.chatbot.rag.document;
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
+import com.finance.tracker.chatbot.util.DocumentIdGenerator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +14,14 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
+
+    private final DocumentIdGenerator idGenerator;
+
     @Override
     public DocumentType getSupportedType() {
         return DocumentType.MONTHLY_SUMMARY;
@@ -25,11 +32,9 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         String content = buildContent(context);
         Map<String, Object> metadata = buildMetadata(context);
         Document document = new Document(content, metadata);
+        UUID id = idGenerator.generate(context.userId(), context.month(), DocumentType.MONTHLY_SUMMARY);
 
-        return new FinancialDocument(
-                document,
-                DocumentType.MONTHLY_SUMMARY
-        );
+        return new FinancialDocument(id,document, DocumentType.MONTHLY_SUMMARY);
     }
 
     private String buildContent(FinancialContext context) {
