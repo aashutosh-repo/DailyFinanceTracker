@@ -1,5 +1,7 @@
 package com.finance.tracker.chatbot.prompt;
 
+import com.finance.tracker.chatbot.context.PromptContext;
+import com.finance.tracker.chatbot.orchestrator.ChatContext;
 import com.finance.tracker.chatbot.system.SystemPromptProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
@@ -14,8 +16,8 @@ public class PromptOrchestrator {
     private final PromptBuilder promptBuilder;
     private final SystemPromptProvider systemPromptProvider;
 
-    public String buildPrompt(String question, List<Document> documents) {
-        String context = promptBuilder.buildPrompt(documents);
+    public String buildPrompt(String question, PromptContext chatContext) {
+        String context = promptBuilder.buildPrompt(chatContext);
         return """
                 %s
 

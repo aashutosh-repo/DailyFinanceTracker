@@ -1,5 +1,8 @@
 package com.finance.tracker.chatbot.services.impl;
 
+import com.finance.tracker.chatbot.context.PromptContext;
+import com.finance.tracker.chatbot.orchestrator.ChatContext;
+import com.finance.tracker.chatbot.orchestrator.ChatOrchestrator;
 import com.finance.tracker.chatbot.prompt.PromptOrchestrator;
 import com.finance.tracker.chatbot.retrieval.RetrievalService;
 import com.finance.tracker.chatbot.services.ChatService;
@@ -21,28 +24,36 @@ public class ChatServiceImpl implements ChatService {
     private final RetrievalService retrievalService;
     private final PromptOrchestrator promptOrchestrator;
     private final LLMService llmService;
+    private final ChatOrchestrator chatOrchestrator;
 
     @Override
     public ChatResponse chat(String userId, String question) {
         long start = System.currentTimeMillis();
 
-        List<Document> documents = retrievalService.retrieveRelevantDocuments(question, userId);
+//        List<Document> documents = retrievalService.retrieveRelevantDocuments(question, userId);
 
-        documents.forEach(doc -> {
+//        documents.forEach(doc -> {
+//
+//            log.info("----------- DOCUMENT -----------");
+//            log.info(doc.getText());
+//            log.info("Metadata : {}", doc.getMetadata());
+//            log.info("-------------------------------");
+//
+//        });
+        ChatContext context = chatOrchestrator.prepareContext(userId, question);
 
-            log.info("----------- DOCUMENT -----------");
-            log.info(doc.getText());
-            log.info("Metadata : {}", doc.getMetadata());
-            log.info("-------------------------------");
+        PromptContext promptContext = PromptContext.builder()
+                        .question(question)
+                        .toolResult(context.toolResult())
+                        .documents(context.documents())
+                        .build();
 
-        });
-        String prompt = promptOrchestrator.buildPrompt(question, documents);
+        String prompt = promptOrchestrator.buildPrompt(question, promptContext);
 
-        String answer =
-                llmService.getLLMResponse(prompt);
+
+        String answer = llmService.getLLMResponse(prompt);
 
         long end = System.currentTimeMillis();
-
 
         return ChatResponse.builder()
                 .success(true)
@@ -51,7 +62,7 @@ public class ChatServiceImpl implements ChatService {
                         ChatResponse.ChatData.builder()
                                 .response(answer)
                                 .conversationId(UUID.randomUUID().toString())
-                                .retrievedDocuments(documents.size())
+//                                .retrievedDocuments(documents.size())
                                 .responseTimeMs(end - start)
                                 .build()
                 )

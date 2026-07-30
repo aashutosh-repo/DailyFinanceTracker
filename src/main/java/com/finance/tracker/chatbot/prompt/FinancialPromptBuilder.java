@@ -1,26 +1,46 @@
 package com.finance.tracker.chatbot.prompt;
 
+import com.finance.tracker.chatbot.context.PromptContext;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
 public class FinancialPromptBuilder implements PromptBuilder {
-
     @Override
-    public String buildPrompt(List<Document> documents) {
+    public String buildPrompt(PromptContext context) {
 
-        if(documents.isEmpty()){
-            return "No Documents found in [FinancialPromptBuilder]";
+        StringBuilder prompt = new StringBuilder();
+
+        if (context.toolResult() != null) {
+
+            prompt.append("""
+                    Tool Output
+                    -----------
+                    """);
+
+            prompt.append(context.toolResult().data());
+
+            return prompt.toString();
         }
-        StringBuilder context = new StringBuilder();
 
-        for (Document document : documents) {
+        if (context.documents().isEmpty()) {
 
-            context.append(document.getText())
+            return "No financial documents found.";
+        }
+
+        prompt.append("""
+                Financial Context
+                -----------------
+                               \s
+               \s""");
+
+        for (Document document : context.documents()) {
+
+            prompt.append(document.getText())
                     .append("\n\n");
         }
 
-        return context.toString();
+        return prompt.toString();
     }
 }
