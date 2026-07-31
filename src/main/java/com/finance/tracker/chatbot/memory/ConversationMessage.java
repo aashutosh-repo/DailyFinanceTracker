@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "conversation_messages")
+@Table(name = "conversation_messages", indexes = @Index(name = "idx_conv_message_conversation_id", columnList =
+        "conversationId"))
 @Getter
 @Setter
 @NoArgsConstructor
