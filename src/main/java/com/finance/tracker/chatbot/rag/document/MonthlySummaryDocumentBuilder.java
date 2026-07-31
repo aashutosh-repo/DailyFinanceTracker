@@ -3,6 +3,7 @@ package com.finance.tracker.chatbot.rag.document;
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
+import com.finance.tracker.chatbot.rag.context.MonthlyComparison;
 import com.finance.tracker.chatbot.util.DocumentIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
@@ -43,6 +44,7 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         appendHeader(sb, context);
         appendExpenseBreakdown(sb, context);
         appendBudgetStatus(sb, context);
+        appendComparisons(sb,context);
         appendFinancialHighlights(sb, context);
 
         return sb.toString();
@@ -78,9 +80,9 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         sb.append("Total Savings   : $")
                 .append(context.totalSavings())
                 .append("\n");
-//        sb.append("Savings Rate    : ")
-//                .append(context.savingsRate())
-//                .append("%\n\n");
+        sb.append("Savings Rate    : ")
+                .append(context.savingsRate())
+                .append("%\n\n");
     }
     private void appendExpenseBreakdown(StringBuilder sb,
                                         FinancialContext context) {
@@ -139,6 +141,27 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
         }
         sb.append("\n");
     }
+
+    private void appendComparisons(StringBuilder sb, FinancialContext context) {
+        if(context.comparisons() == null || context.comparisons().isEmpty()){
+            return;
+        }
+        sb.append(" Month-over-Month Comparison (vs Previous Month)\n");
+        sb.append("------------------------------------------------\n");
+        for(MonthlyComparison comparison : context.comparisons()){
+            BigDecimal diff = comparison.getCurrentAmount().subtract(comparison.getPreviousAmount());
+            String direction = diff.compareTo(BigDecimal.ZERO) > 0 ? "^"
+                    : diff.compareTo(BigDecimal.ZERO) < 0 ? "Down": "Right";
+            sb.append("* ")
+                    .append(comparison.getCategory())
+                    .append(" : $").append(comparison.getCurrentAmount())
+                    .append(" ").append(direction)
+                    .append(" (Prev: $)").append(comparison.getPreviousAmount()).append(")")
+                    .append("\n");
+        }
+        sb.append("\n");
+    }
+
     private void appendFinancialHighlights(StringBuilder sb,
                                            FinancialContext context) {
 

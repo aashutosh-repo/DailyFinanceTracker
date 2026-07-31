@@ -5,19 +5,21 @@ import com.finance.tracker.chatbot.rag.document.DocumentFactory;
 import com.finance.tracker.chatbot.rag.document.DocumentType;
 import com.finance.tracker.chatbot.rag.document.FinancialDocument;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
+import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.service.VectorDocumentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class FinancialIndexingServiceImpl implements FinancialIndexingService{
+@Slf4j
+public class FinancialIndexingServiceImpl implements FinancialIndexingService {
 
     private final FinancialAnalyticsService analyticsService;
     private final DocumentFactory documentFactory;
@@ -26,17 +28,80 @@ public class FinancialIndexingServiceImpl implements FinancialIndexingService{
 
     @Override
     public void indexMonthlySummary(String userId, YearMonth month) {
-        FinancialContext context = analyticsService.getMonthlyContext(userId, month);
-
-        FinancialDocument document = documentFactory.create(DocumentType.MONTHLY_SUMMARY, context);
-
-        System.out.println("Documents: "+document.getDocument().getText());
-        vectorDocumentService.deleteMonthlySummary(userId, month);
-        vectorStore.add(List.of(document.getDocument()));
+        indexDocument(userId, month, DocumentType.MONTHLY_SUMMARY);
     }
 
     @Override
-    public void reindexUser(String userId) {
-
+    public void indexBudgetStatus(String userId, YearMonth month){
+        indexDocument(userId, month, DocumentType.BUDGET_STATUS);
     }
+
+    @Override
+    public void indexIncomeSummery(String userId, YearMonth month) {
+        indexDocument(userId, month, DocumentType.INCOME_SUMMARY);
+    }
+
+    @Override
+    public void indexExpenseSummery(String userId, YearMonth month) {
+        indexDocument(userId, month, DocumentType.EXPENSE_SUMMARY);
+    }
+
+    @Override
+    public void indexByChangeType(String userId, YearMonth month, ChangeType changeType) {
+        log.info("Indexing by changeType {} userId = {} month {}",changeType, userId, month);
+        switch (changeType) {
+            case TRANSACTION -> {
+                indexExpenseSummery(userId, month);
+                indexMonthlySummary(userId, month);
+            }
+            case INCOME -> {
+                indexIncomeSummery(userId, month);
+                indexMonthlySummary(userId, month);
+            }
+            case BUDGET -> {
+                indexBudgetStatus(userId,month);
+                indexMonthlySummary(userId, month);
+            }
+            default -> {
+                indexMonthlySummary(userId,month);
+                indexBudgetStatus(userId, month);
+                indexExpenseSummery(userId, month);
+                indexIncomeSummery(userId, month);
+            }
+        }
+    }
+
+
+    @Override
+    public void reindexUser(String userId) {
+        YearMonth current = YearMonth.now();
+        log.info("Starting full reindexing for userId {} covering 13 Months ", userId);
+        IntStream.rangeClosed(0,12)
+                .mapToObj(current::minusMonths)
+                .forEach(
+                        month -> {
+                            try{
+                                indexByChangeType(userId, month, ChangeType.ALL);
+                            } catch (Exception e ){
+                                log.error("Reindexing Failed for UserId : {} month {} : {}", userId, month, e.getMessage());
+                            }
+                        }
+                );
+    }
+
+    private void indexDocument(String userId, YearMonth month, DocumentType documentType) {
+        try {
+            FinancialContext context = analyticsService.getMonthlyContext(userId, month);
+            FinancialDocument  document = documentFactory.create(documentType, context);
+            vectorDocumentService.deleteByDocumentType(userId, month, documentType);
+            vectorStore.add(List.of(document.getDocument()));
+            log.debug("indexed {} for for userId {} month {}", documentType, userId, month);
+
+        } catch (Exception e ) {
+            log.error("Failed to index {} for userId {} month {} : {}",
+                    documentType, userId, month, e.getMessage(), e);
+        }
+    }
+
+
 }

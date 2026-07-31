@@ -5,6 +5,7 @@ import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.dto.TransactionDto;
 import com.finance.tracker.entity.*;
+import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.TransactionMapper;
@@ -43,7 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction saved = transactionRepository.save(expense);
         eventPublisher.publishEvent(
-                new FinancialDataChangedEvent(user.getUserId(), YearMonth.from(saved.getDateOfExpense()))
+                new FinancialDataChangedEvent(user.getUserId(), YearMonth.from(saved.getDateOfExpense()), ChangeType.TRANSACTION)
         );
         dto.setId(saved.getId());
         
@@ -144,7 +145,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public void deleteExpense(Long id) {
+        Transaction txn = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Expense Not Found with Id " + id));
         transactionRepository.deleteById(id);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(txn.getExtUserId(), YearMonth.from(txn.getDateOfExpense()), ChangeType.TRANSACTION)
+        );
+
     }
 
     @Override

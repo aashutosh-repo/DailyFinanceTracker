@@ -6,11 +6,14 @@ import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
 import com.finance.tracker.entity.Budget;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.events.ChangeType;
+import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.BudgetRepository;
 import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,7 +28,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
-    private final ExpenseRepository expenseRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public BudgetResponse createBudget(BudgetRequest request, String userId) {
@@ -50,6 +53,9 @@ public class BudgetServiceImpl implements BudgetService {
                 .build();
         
         Budget saved = budgetRepository.save(budget);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(userId, YearMonth.from(saved.getStartDate()), ChangeType.BUDGET)
+        );
         return mapToResponse(saved);
     }
 
@@ -68,6 +74,10 @@ public class BudgetServiceImpl implements BudgetService {
         budget.setAlertFrequency(request.getAlertFrequency());
         
         Budget updated = budgetRepository.save(budget);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(updated.getExtUserId(), YearMonth.from(updated.getStartDate()),ChangeType.BUDGET
+                )
+        );
         return mapToResponse(updated);
     }
 
@@ -100,10 +110,12 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public void deleteBudget(Long budgetId) {
-        if (!budgetRepository.existsById(budgetId)) {
-            throw new RuntimeException("Budget not found");
-        }
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new RuntimeException("Budget Not Found"));
         budgetRepository.deleteById(budgetId);
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(budget.getExtUserId(), YearMonth.from(budget.getStartDate()), ChangeType.BUDGET)
+        );
     }
 
     @Override

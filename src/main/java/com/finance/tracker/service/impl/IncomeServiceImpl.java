@@ -4,6 +4,7 @@ import com.finance.tracker.constants.IncomeSource;
 import com.finance.tracker.dto.IncomeDto;
 import com.finance.tracker.entity.Income;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.IncomeRepository;
 import com.finance.tracker.repository.UserRepository;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +45,7 @@ public class IncomeServiceImpl implements IncomeService {
         
         Income saved = incomeRepository.save(income);
         eventPublisher.publishEvent(
-                new FinancialDataChangedEvent(userId, YearMonth.from(saved.getIncomeDate()))
+                new FinancialDataChangedEvent(userId, YearMonth.from(saved.getIncomeDate()), ChangeType.INCOME)
         );
         return mapToDto(saved);
     }
@@ -64,7 +64,7 @@ public class IncomeServiceImpl implements IncomeService {
         
         Income updated = incomeRepository.save(income);
         eventPublisher.publishEvent(
-                new FinancialDataChangedEvent(updated.getExtUserId(), YearMonth.from(updated.getIncomeDate()))
+                new FinancialDataChangedEvent(updated.getExtUserId(), YearMonth.from(updated.getIncomeDate()), ChangeType.INCOME)
         );
         return mapToDto(updated);
     }

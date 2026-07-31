@@ -3,6 +3,7 @@ package com.finance.tracker.chatbot.services.impl;
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
+import com.finance.tracker.chatbot.rag.context.MonthlyComparison;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
 import com.finance.tracker.service.BudgetService;
 import com.finance.tracker.service.IncomeService;
@@ -14,7 +15,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +27,7 @@ public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService 
     private final BudgetService budgetService;
 
     @Override
-    public FinancialContext getMonthlyContext(String userId,
-                                              YearMonth month) {
+    public FinancialContext getMonthlyContext(String userId, YearMonth month) {
 
         BigDecimal totalIncome = incomeService.getIncomeByMonth(userId, month);
 
@@ -40,13 +42,10 @@ public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService 
                                 budgetService.getMonthlyBudgetsStatus(userId, month))
                                 .orElse(List.of());
 
-        BigDecimal totalSavings =
-                totalIncome.subtract(totalExpense);
+        BigDecimal totalSavings = totalIncome.subtract(totalExpense);
 
         BigDecimal savingsRate = calculateSavingsRate(totalIncome, totalSavings);
-
-        System.out.println("Income = " + totalIncome);
-        System.out.println("Expense = " + totalExpense);
+        List<MonthlyComparison> comparisons = buildCategoryComparison(userId, month, categoryExpenses);
 
         return FinancialContext.builder()
                 .userId(userId)
@@ -57,24 +56,36 @@ public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService 
                 .categoryExpenses(categoryExpenses)
                 .savingsRate(savingsRate)
                 .budgetStatuses(budgetStatuses)
+                .comparisons(comparisons)
                 .build();
 
         // comparisons for now
     }
 
-    private BigDecimal calculateSavingsRate(
-            BigDecimal income,
-            BigDecimal savings) {
+    private BigDecimal calculateSavingsRate(BigDecimal income, BigDecimal savings) {
 
         if (income.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-
         return savings.multiply(BigDecimal.valueOf(100))
                 .divide(income, 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal defaultValue(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
+    private List<MonthlyComparison> buildCategoryComparison(String userId, YearMonth currentMonth, List<CategoryExpense> currentExpense){
+        YearMonth previousMonth = currentMonth.minusMonths(1);
+        List<CategoryExpense> previousExpense = Optional.ofNullable(
+                transactionService.getCategoryExpenses(userId, previousMonth))
+                .orElse(List.of());
+
+        Map<String, BigDecimal> previousMap =  previousExpense.stream().collect(
+                Collectors.toMap(
+                        CategoryExpense::getCategory,
+                        CategoryExpense::getAmount
+                ));
+        return currentExpense.stream()
+                .map(e -> new MonthlyComparison(
+                        e.getCategory(), previousMap.getOrDefault(e.getCategory(), BigDecimal.ZERO),
+                        e.getAmount()
+                )).collect(Collectors.toList());
     }
 }

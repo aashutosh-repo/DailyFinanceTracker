@@ -1,17 +1,11 @@
 package com.finance.tracker.chatbot.controller;
 
-import com.finance.tracker.chatbot.indexing.FinancialIndexingService;
-import com.finance.tracker.chatbot.memory.ConversationMessage;
-import com.finance.tracker.chatbot.memory.ConversationService;
-import com.finance.tracker.chatbot.rag.context.FinancialContext;
-import com.finance.tracker.chatbot.rag.document.DocumentFactory;
-import com.finance.tracker.chatbot.rag.document.FinancialDocument;
-import com.finance.tracker.chatbot.rag.document.MonthlySummaryDocumentBuilder;
+import com.finance.tracker.chatbot.services.ChatService;
 import com.finance.tracker.chatbot.services.FinancialContextService;
 import com.finance.tracker.dto.chatbot.ChatRequest;
 import com.finance.tracker.dto.chatbot.ChatResponse;
-import com.finance.tracker.service.LLMService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,40 +13,30 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.YearMonth;
-import java.util.List;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@Slf4j
 public class ChatController {
 
     private final FinancialContextService financialContextService;
-    private final LLMService llmService;
-    private final MonthlySummaryDocumentBuilder factory;
-    private final FinancialIndexingService service;
-    private final ConversationService conversationService;
+//    private final LLMService llmService;
+//    private final MonthlySummaryDocumentBuilder factory;
+//    private final FinancialIndexingService service;
+//    private final ConversationService conversationService;
+    private final ChatService chatService;
 
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ChatResponse> chat(
-            @RequestBody ChatRequest request
-    ) {
-        try {
-            FinancialContext context = financialContextService.getMonthlyContext("U1002", YearMonth.now());
-            FinancialDocument document = factory.build(context);
-            System.out.println(document.getDocument().getText());
-            ///test
-            UUID id = conversationService.createConversation("U1002");
-
-            conversationService.saveUserMessage(id, "Hello");
-            conversationService.saveAssistantMessage(id, "Hi");
-            List<ConversationMessage> history = conversationService.getConversationHistory(id);
-        ///
-            service.indexMonthlySummary("U1002",YearMonth.now());
-
+    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
             String message = request.getMessage();
+            String userId = request.getUserId();
+
+            if(userId ==null ||userId.isBlank()){
+                return ResponseEntity.badRequest().body(
+                        ChatResponse.builder().success(false).message("UserId Cannot be Empty").build()
+                );
+            }
 
             if (message == null || message.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(
@@ -62,31 +46,12 @@ public class ChatController {
                                 .build()
                 );
             }
-
-            String response = llmService.askLLM(message);
-
-            System.out.println("✓ Chatbot response: " + response);
-
-            ChatResponse chatResponse = ChatResponse.builder()
-                    .success(true)
-                    .message("Success")
-                    .data(ChatResponse.ChatData.builder()
-                            .response(response)
-                            .conversationId(request.getConversationId())
-                            .build())
-                    .build();
-
-            System.out.println("✓ Chatbot response object: " + chatResponse);
-            return ResponseEntity.ok(chatResponse);
-        } catch (Exception e) {
-            System.err.println("✗ Chatbot error: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(
-                    ChatResponse.builder()
-                            .success(false)
-                            .message("Error: " + e.getMessage())
-                            .build()
-            );
-        }
+            try{
+                ChatResponse response = chatService.chat(userId, message, request.getConversationId());
+                return ResponseEntity.ok(response);
+            }catch (Exception e){
+                return ResponseEntity.status(500).body(ChatResponse.builder()
+                        .success(false).message("UnExpected Error from LLM").build());
+            }
     }
 }
