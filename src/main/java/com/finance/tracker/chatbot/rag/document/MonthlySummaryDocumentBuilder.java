@@ -30,10 +30,10 @@ public class MonthlySummaryDocumentBuilder implements FinancialDocumentBuilder{
 
     @Override
     public FinancialDocument build(FinancialContext context) {
+        UUID id = idGenerator.generate(context.userId(), context.month(), DocumentType.MONTHLY_SUMMARY);
         String content = buildContent(context);
         Map<String, Object> metadata = buildMetadata(context);
-        Document document = new Document(content, metadata);
-        UUID id = idGenerator.generate(context.userId(), context.month(), DocumentType.MONTHLY_SUMMARY);
+        Document document = new Document(id.toString(), content, metadata);
 
         return new FinancialDocument(id,document, DocumentType.MONTHLY_SUMMARY);
     }

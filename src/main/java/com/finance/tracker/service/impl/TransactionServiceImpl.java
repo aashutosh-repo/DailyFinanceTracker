@@ -11,6 +11,7 @@ import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.TransactionMapper;
 import com.finance.tracker.repository.*;
 import com.finance.tracker.service.TransactionService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,9 +34,12 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Override
+    @Transactional
     public TransactionDto addExpense(TransactionDto dto) {
         User user = userRepository.findByUserId(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + dto.getUserId()));
+        String normalizedTxnType = dto.getTxnType() == null ? "DEBIT" : dto.getTxnType().trim().toUpperCase();
+        dto.setTxnType(normalizedTxnType);
 
         Transaction expense = TransactionMapper.toEntity(dto, user);
         if(expense.getTypeOfExpense()==null){
@@ -43,13 +47,18 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Transaction saved = transactionRepository.save(expense);
-        eventPublisher.publishEvent(
-                new FinancialDataChangedEvent(user.getUserId(), YearMonth.from(saved.getDateOfExpense()), ChangeType.TRANSACTION)
-        );
+
         dto.setId(saved.getId());
         
         // Sync to EXPENSES or INCOME table based on transaction type
         syncTransactionToDetailTable(dto, user);
+
+        ChangeType changeType = "CREDIT".equals(normalizedTxnType) ? ChangeType.INCOME: ChangeType.TRANSACTION;
+        dto.setTxnType(normalizedTxnType);
+
+        eventPublisher.publishEvent(
+                new FinancialDataChangedEvent(user.getUserId(), YearMonth.from(saved.getDateOfExpense()), ChangeType.TRANSACTION)
+        );
         
         return dto;
     }

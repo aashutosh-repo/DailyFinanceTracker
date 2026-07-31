@@ -9,9 +9,9 @@ import com.finance.tracker.entity.User;
 import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.BudgetRepository;
-import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,6 +31,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public BudgetResponse createBudget(BudgetRequest request, String userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -60,6 +61,7 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
+    @Transactional
     public BudgetResponse updateBudget(Long budgetId, BudgetRequest request) {
         Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
@@ -109,6 +111,7 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
+    @Transactional
     public void deleteBudget(Long budgetId) {
         Budget budget = budgetRepository.findById(budgetId)
                 .orElseThrow(() -> new RuntimeException("Budget Not Found"));

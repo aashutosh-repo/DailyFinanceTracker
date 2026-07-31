@@ -16,27 +16,27 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class FinancialIndexListener {
 
-    private static final long DEBOUNCE_MS = 5_000;
+//    private static final long DEBOUNCE_MS = 5_000;
     private final FinancialIndexingService indexingService;
     private final ConcurrentHashMap<String, Long> lastIndexedAt = new ConcurrentHashMap<>();
 
     @Async("indexingExecuter")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT,fallbackExecution = true)
     public void handleFinancialDataChanged(FinancialDataChangedEvent event) {
 
         log.info("Reindexing financial data for user {} month {}", event.getUserId(), event.getMonth());
 
-        String debounceKey = event.getUserId() + "_" +
-                event.getMonth() + "_" +
-                event.getChangeType();
-
-        long now = System.currentTimeMillis();
-        Long lastRun = lastIndexedAt.get(debounceKey);
-        if(lastRun != null && (now - lastRun) < DEBOUNCE_MS) {
-            log.debug("Debounced index request for Key= {} ({}ms since last run)", debounceKey, now-lastRun);
-            return;
-        }
-        lastIndexedAt.put(debounceKey, now);
+//        String debounceKey = event.getUserId() + "_" +
+//                event.getMonth() + "_" +
+//                event.getChangeType();
+//
+//        long now = System.currentTimeMillis();
+//        Long lastRun = lastIndexedAt.get(debounceKey);
+//        if(lastRun != null && (now - lastRun) < DEBOUNCE_MS) {
+//            log.debug("Debounced index request for Key= {} ({}ms since last run)", debounceKey, now-lastRun);
+//            return;
+//        }
+//        lastIndexedAt.put(debounceKey, now);
         log.info("[VectorIndex] received changeType {} for UserId {}", event.getChangeType(), event.getUserId());
 
         try {

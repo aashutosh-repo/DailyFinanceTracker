@@ -92,10 +92,12 @@ public class FinancialIndexingServiceImpl implements FinancialIndexingService {
     private void indexDocument(String userId, YearMonth month, DocumentType documentType) {
         try {
             FinancialContext context = analyticsService.getMonthlyContext(userId, month);
-            FinancialDocument  document = documentFactory.create(documentType, context);
-            vectorDocumentService.deleteByDocumentType(userId, month, documentType);
+            FinancialDocument document = documentFactory.create(documentType, context);
+//            vectorDocumentService.deleteByDocumentType(userId, month, documentType);
+            FinancialDocument financialDocument = documentFactory.create(documentType, context);
+            vectorStore.delete(List.of(financialDocument.getId().toString()));
             vectorStore.add(List.of(document.getDocument()));
-            log.debug("indexed {} for for userId {} month {}", documentType, userId, month);
+            log.debug("Income {} expense {} for month {}", context.totalIncome(), context.totalExpense(), month);
 
         } catch (Exception e ) {
             log.error("Failed to index {} for userId {} month {} : {}",

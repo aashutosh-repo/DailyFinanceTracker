@@ -28,8 +28,7 @@ public class VectorDocumentServiceImpl implements VectorDocumentService {
         int rows = vectorJdbcTemplate.update("""
                 DELETE FROM vector_store
                 WHERE metadata->>'userId' = ?
-                """
-        );
+                """, userId);
         log.info("Deleted {} vector documents for userId {}", rows, userId);
     }
 

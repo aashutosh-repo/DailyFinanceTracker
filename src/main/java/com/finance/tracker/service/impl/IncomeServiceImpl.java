@@ -9,6 +9,7 @@ import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.IncomeRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.IncomeService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class IncomeServiceImpl implements IncomeService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public IncomeDto createIncome(IncomeDto incomeDto, String userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -51,6 +53,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional
     public IncomeDto updateIncome(Long incomeId, IncomeDto incomeDto) {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new RuntimeException("Income not found"));
@@ -85,6 +88,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional
     public void deleteIncome(Long incomeId) {
         if (!incomeRepository.existsById(incomeId)) {
             throw new RuntimeException("Income not found");
