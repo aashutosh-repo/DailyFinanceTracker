@@ -22,7 +22,7 @@ public class ConversationServiceImpl implements ConversationService{
         Conversation conversation = Conversation.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
-                .title("new Conservation")
+                .title("new Conversation")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -33,12 +33,19 @@ public class ConversationServiceImpl implements ConversationService{
 
     @Override
     public Conversation getOrCreateConversation(UUID conversationId, String userId) {
-        if(conversationId==null){
+        if (conversationId == null) {
             UUID id = createConversation(userId);
-            return repository.findByIdAndUserId(id,userId).orElse(null);
+//            return repository.findByIdAndUserId(id,userId).orElse(null);
+            return repository.findById(id).orElseThrow();
         }
 
-        return messageRepository.findByConversationId(conversationId).orElse(null);
+//        return messageRepository.findByConversationId(conversationId).orElse(null);
+        return repository.findByIdAndUserId(conversationId,userId).orElseGet(
+                () -> {
+                    UUID id = createConversation(userId);
+                    return repository.findById(id).orElseThrow();
+                }
+        );
     }
 
     @Override
