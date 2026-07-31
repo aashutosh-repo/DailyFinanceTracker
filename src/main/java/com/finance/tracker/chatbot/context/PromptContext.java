@@ -1,5 +1,6 @@
 package com.finance.tracker.chatbot.context;
 
+import com.finance.tracker.chatbot.router.QuestionType;
 import com.finance.tracker.chatbot.tool.ToolResult;
 import lombok.Builder;
 import org.springframework.ai.document.Document;
@@ -11,7 +12,8 @@ public record PromptContext(
 
         String question,
         ToolResult toolResult,
-        List<Document> documents
+        List<Document> documents,
+        QuestionType questionType
 
 ) {
 }

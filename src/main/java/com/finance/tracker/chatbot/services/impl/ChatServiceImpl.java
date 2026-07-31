@@ -39,6 +39,7 @@ public class ChatServiceImpl implements ChatService {
                         .question(question)
                         .toolResult(context.toolResult())
                         .documents(context.documents())
+                        .questionType(context.questionType())
                         .build();
 
         String prompt = promptOrchestrator.buildPrompt(question, promptContext,conversationHistory);
