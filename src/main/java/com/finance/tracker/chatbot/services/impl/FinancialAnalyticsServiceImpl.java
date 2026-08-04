@@ -9,6 +9,7 @@ import com.finance.tracker.service.BudgetService;
 import com.finance.tracker.service.IncomeService;
 import com.finance.tracker.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService 
     private final BudgetService budgetService;
 
     @Override
+    @Cacheable(value = "financialContext", key="#userId+ '_' + #month")
     public FinancialContext getMonthlyContext(String userId, YearMonth month) {
 
         BigDecimal totalIncome = incomeService.getIncomeByMonth(userId, month);
