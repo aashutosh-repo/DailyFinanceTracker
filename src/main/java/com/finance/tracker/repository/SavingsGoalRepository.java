@@ -11,10 +11,9 @@ import java.util.List;
 
 @Repository
 public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, Long> {
-    Page<SavingsGoal> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
-//    @Query("SELECT sg FROM SavingsGoal sg WHERE sg.user.id = :userId " +
-//            "AND sg.status IN ('ACTIVE', 'PAUSED') " +
-//            "AND sg.deletedAt IS NULL")
-//    List<SavingsGoal> findActiveSavingsGoalsByUser(Long userId);
+    Page<SavingsGoal> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
+    List<SavingsGoal> findByUserId(String userId);
+    List<SavingsGoal> findByUserIdAndStatusIn(String userId, List<String> statuses);
+
 }

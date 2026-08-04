@@ -2,6 +2,7 @@ package com.finance.tracker.service.impl;
 
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.constants.BudgetType;
+import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
 import com.finance.tracker.entity.Budget;
@@ -9,26 +10,29 @@ import com.finance.tracker.entity.User;
 import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.BudgetRepository;
+import com.finance.tracker.repository.TransactionRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final TransactionRepository transactionRepository;
 
     @Override
     @Transactional
@@ -131,17 +135,31 @@ public class BudgetServiceImpl implements BudgetService {
     public List<BudgetStatus> getMonthlyBudgetsStatus(String userId, YearMonth month) {
         LocalDate start = month.atDay(1);
         LocalDate end = month.atEndOfMonth();
-        List<BudgetStatus> status = new ArrayList<>();
+
         List<Budget> availableBudget = budgetRepository.getMonthlyBudgetStatus(userId, "MONTHLY", start, end);
-        for(Budget b : availableBudget){
-            BudgetStatus temp = new BudgetStatus();
-            temp.setCategory(String.valueOf(BudgetType.fromId(b.getCategoryId())));
-            temp.setBudget(b.getAmount());
-            temp.setActual(b.getAmount());
-            temp.setExceeded(false);
-            status.add(temp);
+        List<Object[]> rawExpenses = transactionRepository.getCategoryExpenses(userId, start, end);
+
+        Map<String, BigDecimal> actualCategory = new HashMap<>();
+
+        for(Object[]  raw : rawExpenses){
+             TransactionCategory cat = (TransactionCategory)raw[0];
+             BigDecimal amount = (BigDecimal) raw[1];
+             actualCategory.put(cat.name(), amount);
         }
-        return status;
+        List<BudgetStatus> statusList = new ArrayList<>();
+
+        for(Budget b : availableBudget){
+
+            BudgetType type = BudgetType.fromId(b.getCategoryId());
+            BigDecimal actual = actualCategory.getOrDefault(type.name(), BigDecimal.ZERO);
+            boolean exceeded = actual.compareTo(b.getAmount())> 0;
+
+            if(exceeded) {
+                log.warn("Budget exceeded for UserId {} category {} limit {} actual {}", userId, type.name(), b.getAmount(), actual);
+            }
+            statusList.add(new BudgetStatus(type.name(), b.getAmount(), actual,exceeded));
+        }
+        return statusList;
     }
 
     private BudgetResponse mapToResponse(Budget budget) {
