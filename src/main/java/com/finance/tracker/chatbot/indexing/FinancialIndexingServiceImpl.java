@@ -53,20 +53,25 @@ public class FinancialIndexingServiceImpl implements FinancialIndexingService {
             case TRANSACTION -> {
                 indexExpenseSummery(userId, month);
                 indexMonthlySummary(userId, month);
+                indexDocument(userId, month, DocumentType.FINANCIAL_INSIGHT);
             }
             case INCOME -> {
                 indexIncomeSummery(userId, month);
                 indexMonthlySummary(userId, month);
+                indexDocument(userId, month, DocumentType.FINANCIAL_INSIGHT);
             }
             case BUDGET -> {
                 indexBudgetStatus(userId,month);
                 indexMonthlySummary(userId, month);
+                indexDocument(userId, month, DocumentType.FINANCIAL_INSIGHT);
             }
             default -> {
                 indexMonthlySummary(userId,month);
                 indexBudgetStatus(userId, month);
                 indexExpenseSummery(userId, month);
                 indexIncomeSummery(userId, month);
+                indexDocument(userId, month, DocumentType.FINANCIAL_INSIGHT);
+
             }
         }
     }
