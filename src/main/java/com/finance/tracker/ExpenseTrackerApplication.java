@@ -2,6 +2,7 @@ package com.finance.tracker;
 
 
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +14,7 @@ import javax.sql.DataSource;
 
 @EnableScheduling
 @SpringBootApplication
+@Slf4j
 public class ExpenseTrackerApplication {
     public static void main(String[] args) {
         SpringApplication.run(ExpenseTrackerApplication.class, args);
@@ -22,20 +24,12 @@ public class ExpenseTrackerApplication {
     CommandLineRunner verifyDataSource(DataSource dataSource,
                                        JdbcTemplate jdbcTemplate) {
         return args -> {
-
-            System.out.println("====================================");
-
             if (dataSource instanceof HikariDataSource hikari) {
-                System.out.println("JDBC URL : " + hikari.getJdbcUrl());
-                System.out.println("Username : " + hikari.getUsername());
+                log.info("DB connected: {} | user = {}", hikari.getJdbcUrl(), hikari.getUsername());
             }
+            String db = jdbcTemplate.queryForObject("select current_database()", String.class);
+            log.info("Active Database : {}", db);
 
-            System.out.println("Current DB : "
-                    + jdbcTemplate.queryForObject(
-                    "select current_database()",
-                    String.class));
-
-            System.out.println("====================================");
         };
     }
 }

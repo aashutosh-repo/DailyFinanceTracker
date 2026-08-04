@@ -21,7 +21,7 @@ public class IncomeController {
     @PostMapping
     public ResponseEntity<IncomeDto> createIncome(
             @RequestBody IncomeDto incomeDto,
-            @RequestParam(defaultValue = "U100") String userId) {
+            @RequestParam String userId) {
         try {
             IncomeDto response = incomeService.createIncome(incomeDto, userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);

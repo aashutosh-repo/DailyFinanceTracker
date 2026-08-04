@@ -19,11 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class ChatController {
 
-    private final FinancialContextService financialContextService;
-//    private final LLMService llmService;
-//    private final MonthlySummaryDocumentBuilder factory;
-//    private final FinancialIndexingService service;
-//    private final ConversationService conversationService;
     private final ChatService chatService;
 
 
