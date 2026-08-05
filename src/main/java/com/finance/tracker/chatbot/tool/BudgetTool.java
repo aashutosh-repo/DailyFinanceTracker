@@ -2,7 +2,6 @@ package com.finance.tracker.chatbot.tool;
 
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
-import com.finance.tracker.constants.BudgetType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,8 @@ public class BudgetTool extends AbstractAiTool{
     private final FinancialAnalyticsService financialAnalyticsService;
 
     private static final Set<String> BUDGET_KEYWORDS = Set.of(
-            "budget","budgets", "over budget", "limit", "threshold", "exceed", "exceeded","allowance", "allocation"
+            "budget","budgets", "over budget", "limit", "threshold", "exceed", "exceeded",
+            "allowance", "allocation", "save", "saving", "saved"
     );
 
     @Override
