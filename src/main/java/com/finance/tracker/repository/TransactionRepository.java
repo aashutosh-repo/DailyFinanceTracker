@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
@@ -16,14 +15,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         SELECT COALESCE(SUM(t.txnAmount), 0) FROM Transaction t
         WHERE t.extUserId = :userId AND t.txnType = 'DEBIT' AND t.dateOfExpense BETWEEN :startDate AND :endDate
     """)
-    BigDecimal getTotalExpense(@Param("userId") String userId, @Param("startDate") YearMonth startDate,
-            @Param("endDate") YearMonth endDate);
+    BigDecimal getTotalExpense(@Param("userId") String userId, @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 
     @Query("""
         SELECT t.typeOfExpense, COALESCE(SUM(t.txnAmount), 0) FROM Transaction t WHERE t.extUserId = :userId
         AND t.txnType = 'DEBIT' AND t.dateOfExpense BETWEEN :startDate AND :endDate GROUP BY t.typeOfExpense
     """)
-    List<Object[]> getCategoryExpenses(@Param("userId") String userId, @Param("startDate") YearMonth startDate, @Param("endDate") YearMonth endDate);
+    List<Object[]> getCategoryExpenses(@Param("userId") String userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("""
         SELECT t FROM Transaction t WHERE t.extUserId = :userId
