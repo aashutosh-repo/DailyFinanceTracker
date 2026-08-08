@@ -4,6 +4,7 @@ import com.finance.tracker.chatbot.services.ChatService;
 import com.finance.tracker.chatbot.services.FinancialContextService;
 import com.finance.tracker.dto.chatbot.ChatRequest;
 import com.finance.tracker.dto.chatbot.ChatResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,24 +24,10 @@ public class ChatController {
 
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
+    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
             String message = request.getMessage();
             String userId = request.getUserId();
 
-            if(userId ==null ||userId.isBlank()){
-                return ResponseEntity.badRequest().body(
-                        ChatResponse.builder().success(false).message("UserId Cannot be Empty").build()
-                );
-            }
-
-            if (message == null || message.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(
-                        ChatResponse.builder()
-                                .success(false)
-                                .message("Message cannot be empty")
-                                .build()
-                );
-            }
             try{
                 ChatResponse response = chatService.chat(userId, message, request.getConversationId());
                 return ResponseEntity.ok(response);
