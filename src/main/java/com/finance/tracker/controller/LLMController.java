@@ -5,6 +5,8 @@ import com.finance.tracker.dto.chatbot.ChatRequest;
 import com.finance.tracker.dto.chatbot.ChatResponse;
 import com.finance.tracker.service.impl.DocumentsReader;
 import com.finance.tracker.service.impl.LLMServiceImpl;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/llm")
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600, allowedHeaders = "*")
 public class LLMController {
 
@@ -25,24 +28,11 @@ public class LLMController {
     }
 
     @PostMapping(value = "/chat", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ChatResponse> chat(
-            @RequestBody ChatRequest request
-    ) {
+    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
         try {
             String message = request.getMessage();
 
-            if (message == null || message.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(
-                    ChatResponse.builder()
-                        .success(false)
-                        .message("Message cannot be empty")
-                        .build()
-                );
-            }
-
             String response = llmService.askLLM(message);
-
-            System.out.println("✓ Chatbot response: " + response);
 
             ChatResponse chatResponse = ChatResponse.builder()
                     .success(true)
@@ -53,15 +43,13 @@ public class LLMController {
                             .build())
                     .build();
 
-            System.out.println("✓ Chatbot response object: " + chatResponse);
             return ResponseEntity.ok(chatResponse);
         } catch (Exception e) {
-            System.err.println("✗ Chatbot error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("✗ Chatbot error: {}" , e.getMessage(),e);
             return ResponseEntity.status(500).body(
                 ChatResponse.builder()
                     .success(false)
-                    .message("Error: " + e.getMessage())
+                    .message("Unexpected Error: " + e.getMessage())
                     .build()
             );
         }

@@ -2,7 +2,9 @@ package com.finance.tracker.controller;
 import com.finance.tracker.dto.TransactionDto;
 import com.finance.tracker.service.impl.FileProcessingServices;
 import com.finance.tracker.service.impl.TransactionServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,13 +15,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600, allowedHeaders = "*")
 public class TransactionController {
     private final TransactionServiceImpl txService;
     private final FileProcessingServices fileProcessingServices;
 
     @PostMapping
-    public ResponseEntity<TransactionDto> addExpense(@RequestBody TransactionDto dto) {
+    public ResponseEntity<TransactionDto> addExpense(@Valid @RequestBody TransactionDto dto) {
         return ResponseEntity.ok(txService.addExpense(dto));
     }
 
@@ -45,9 +48,10 @@ public class TransactionController {
             File temp = File.createTempFile("txn_", ".html");
             file.transferTo(temp);
             fileProcessingServices.importFromHtml(temp);
+            temp.delete();
             return ResponseEntity.ok("File imported successfully");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("HTML import error Failed: {}", e.getMessage(),e);
             return ResponseEntity.status(500).body("Failed: " + e.getMessage());
         }
     }

@@ -2,12 +2,12 @@ package com.finance.tracker.controller;
 
 import com.finance.tracker.dto.IncomeDto;
 import com.finance.tracker.service.IncomeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -20,7 +20,7 @@ public class IncomeController {
 
     @PostMapping
     public ResponseEntity<IncomeDto> createIncome(
-            @RequestBody IncomeDto incomeDto,
+            @Valid @RequestBody IncomeDto incomeDto,
             @RequestParam String userId) {
         try {
             IncomeDto response = incomeService.createIncome(incomeDto, userId);
@@ -53,7 +53,7 @@ public class IncomeController {
     @PutMapping("/{id}")
     public ResponseEntity<IncomeDto> updateIncome(
             @PathVariable Long id,
-            @RequestBody IncomeDto incomeDto) {
+            @Valid @RequestBody IncomeDto incomeDto) {
         try {
             IncomeDto response = incomeService.updateIncome(id, incomeDto);
             return ResponseEntity.ok(response);

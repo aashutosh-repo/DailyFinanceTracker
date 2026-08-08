@@ -3,6 +3,7 @@ package com.finance.tracker.controller;
 import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
 import com.finance.tracker.service.BudgetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class BudgetController {
 
     @PostMapping
     public ResponseEntity<BudgetResponse> createBudget(
-            @RequestBody BudgetRequest request,
+            @Valid @RequestBody BudgetRequest request,
             @RequestParam String userId) {
         try {
             BudgetResponse response = budgetService.createBudget(request, userId);
@@ -52,7 +53,7 @@ public class BudgetController {
     @PutMapping("/{id}")
     public ResponseEntity<BudgetResponse> updateBudget(
             @PathVariable Long id,
-            @RequestBody BudgetRequest request) {
+            @Valid @RequestBody BudgetRequest request) {
         try {
             BudgetResponse response = budgetService.updateBudget(id, request);
             return ResponseEntity.ok(response);

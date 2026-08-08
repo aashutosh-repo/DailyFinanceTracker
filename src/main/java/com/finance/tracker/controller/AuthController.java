@@ -4,7 +4,6 @@ import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.RegistrationRequest;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.service.impl.AuthService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,7 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
         logger.info("Registration request received for email: {}", registrationRequest.getEmail());
         
         User user = User.builder()
