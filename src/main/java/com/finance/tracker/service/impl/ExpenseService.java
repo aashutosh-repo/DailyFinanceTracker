@@ -9,6 +9,7 @@ import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.exception.ValidationException;
 import com.finance.tracker.mapper.ExpenseMapper;
 import com.finance.tracker.repository.ExpenseRepository;
+import com.finance.tracker.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.*;
