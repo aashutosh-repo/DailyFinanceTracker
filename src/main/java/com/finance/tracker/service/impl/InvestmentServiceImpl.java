@@ -1,6 +1,9 @@
 package com.finance.tracker.service.impl;
 
 import com.finance.tracker.dto.investment.InvestmentDto;
+import com.finance.tracker.entity.Investment;
+import com.finance.tracker.entity.User;
+import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.InvestmentMapper;
 import com.finance.tracker.repository.InvestmentRepository;
 import com.finance.tracker.repository.UserRepository;
@@ -22,16 +25,26 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     private final InvestmentRepository investmentRepository;
     private final UserRepository userRepository;
-    private final InvestmentMapper mapper;
+    private final InvestmentMapper investmentMapper;
 
     @Override
     public InvestmentDto createInvestment(String userId, InvestmentDto dto) {
-        return null;
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+
+        Investment investment  = investmentMapper.toEntity(dto);
+
+        Investment saved = investmentRepository.save(investment);
+        log.info("Investment Created with id : {}", saved.getId());
+        return investmentMapper.toDto(saved);
     }
 
     @Override
-    public InvestmentDto getInvestmentByUserId(String userId) {
-        return null;
+    @Transactional(readOnly = true)
+    public InvestmentDto getInvestmentById(Long id) {
+        Investment investment = investmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Investment not found with id :" + id));
+        return investmentMapper.toDto(investment);
     }
 
     @Override
