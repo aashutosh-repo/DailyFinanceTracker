@@ -30,6 +30,8 @@ public class Investment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    private String extUserId;
     
     @NotBlank
     @Column(nullable = false, length = 50)

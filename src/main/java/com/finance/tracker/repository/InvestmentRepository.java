@@ -14,10 +14,11 @@ import java.util.List;
  */
 @Repository
 public interface InvestmentRepository extends JpaRepository<Investment, Long> {
-    Page<Investment> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
+    Page<Investment> findByExtUserIdAndDeletedAtIsNull(String userId, Pageable pageable);
 
-    @Query("SELECT i FROM Investment i WHERE i.user.id = :userId " +
+    @Query("SELECT i FROM Investment i WHERE i.extUserId = :userId " +
             "AND i.status = 'ACTIVE' " +
             "AND i.deletedAt IS NULL")
-    List<Investment> findActiveInvestmentsByUser(Long userId);
+    List<Investment> findActiveInvestmentsByUserId(String extUserId);
+    List<Investment> findByExtUserId(String userId);
 }
