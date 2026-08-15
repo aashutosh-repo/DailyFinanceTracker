@@ -1,75 +1,59 @@
 package com.finance.tracker.filter;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+
+import com.finance.tracker.service.impl.AccessTokenStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-    @Value("${jwt.secret}")
-    private String secret;
+    private final AccessTokenStore accessTokenStore;
+
+    public JwtAuthFilter(AccessTokenStore accessTokenStore) {
+        this.accessTokenStore = accessTokenStore;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = null;
-        
-        // 1️⃣ First, try to get token from Authorization header (for backward compatibility)
+
+        // Bearer header (optional)
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (auth != null && auth.startsWith("Bearer ")) {
             token = auth.substring(7);
         }
-        
-        // 2️⃣ If not found, try to get token from HttpOnly cookie
+
+        // If not present, try cookie named 'access_token'
         if (token == null) {
             token = getTokenFromCookie(request);
         }
-        
-        // 3️⃣ Validate and process the token
-        if (token != null) {
-            try {
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody();
-                String sub = claims.getSubject();
-                if (sub != null) {
-                    UsernamePasswordAuthenticationToken a =
-                            new UsernamePasswordAuthenticationToken(sub, null, java.util.List.of());
-                    SecurityContextHolder.getContext().setAuthentication(a);
-                }
-            } catch (Exception e) {
-                // ignore - let it be unauthenticated
+
+        if (token != null && accessTokenStore.validate(token)) {
+            String username = accessTokenStore.getUsername(token);
+            if (username != null) {
+                UsernamePasswordAuthenticationToken a = new UsernamePasswordAuthenticationToken(username, null, java.util.List.of());
+                SecurityContextHolder.getContext().setAuthentication(a);
             }
         }
-        
+
         filterChain.doFilter(request, response);
     }
-    
-    /**
-     * Extract JWT token from HttpOnly cookie named "auth_token"
-     */
+
     private String getTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("auth_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+        if (cookies == null) return null;
+        for (Cookie c : cookies) {
+            if ("access_token".equals(c.getName())) return c.getValue();
         }
         return null;
     }

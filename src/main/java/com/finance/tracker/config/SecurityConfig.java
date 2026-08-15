@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.List;
 
@@ -26,29 +28,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // 👈 add this line
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                    // Swagger/OpenAPI URLs
-                    .requestMatchers(
-                            "/api/v1/auth/register",
-                            "/v3/api-docs/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/swagger-ui/index.html",
-                            "/api/llm/**"
-                    ).permitAll()
-                            .requestMatchers("/actuator/health").permitAll()
-                            .requestMatchers("/ping").permitAll()
-                    // Auth endpoints
-                    .requestMatchers("/api/v1/auth/**").permitAll()
-                    // Your transaction endpoints (optional)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
+                )
+                .authorizeHttpRequests(auth -> auth
+                                // Swagger/OpenAPI URLs
+                                .requestMatchers(
+                                        "/api/v1/auth/register",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html",
+                                        "/swagger-ui/index.html",
+                                        "/api/llm/**"
+                                ).permitAll()
+                                .requestMatchers("/actuator/health").permitAll()
+                                .requestMatchers("/ping").permitAll()
+                                // Auth endpoints
+                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers("/login", "/logout").permitAll()
+                                // Your transaction endpoints (optional)
 //                        .requestMatchers("/api/v1/transactions/**").permitAll()
-                    // All other endpoints require authentication
-                    .anyRequest().authenticated()
-        )
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                                // All other endpoints require authentication
+                                .anyRequest().authenticated()
+                )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -56,10 +62,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200",
-                "http://dailyfinancetracker-production.up.railway.app",
                 "https://finance-tracker-ui-five.vercel.app")); // your Angular app
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-CSRF-TOKEN"));
         config.setAllowCredentials(true); // allow cookies/JWT via cookies
         config.setMaxAge(3600L);
 
