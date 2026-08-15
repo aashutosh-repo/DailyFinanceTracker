@@ -1,10 +1,13 @@
 package com.finance.tracker.service.impl;
+
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.UserDto;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.repository.UserRepository;
+import com.finance.tracker.entity.RefreshToken;
+import com.finance.tracker.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,8 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.UUID.randomUUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +30,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final AccessTokenStore accessTokenStore;
 
     public AuthResponse register(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
@@ -39,7 +47,7 @@ public class AuthService {
         return new AuthResponse(token, dto);
     }
 
-    public AuthResponse login(AuthRequest req) {
+    public AuthResponse login(AuthRequest req) throws NoSuchAlgorithmException {
         Optional<User> user = userRepository.findByEmail(req.getEmail());
         if(user.isEmpty()) {
             user = userRepository.findByUsername(req.getEmail());
@@ -50,9 +58,36 @@ public class AuthService {
         if (!passwordEncoder.matches(req.getPassword(), user.get().getPasswordHash())) {
             throw new RuntimeException("Invalid credentials");
         }
-        String token = jwtService.generateToken(user.get().getEmail());
         UserDto userDto = UserMapper.toDto(user.get());
-        return new AuthResponse(token,userDto);
+
+        // Create short-lived opaque access token (5 minutes)
+        String accessToken = accessTokenStore.createToken(user.get().getEmail(), 60 * 5);
+
+        // Create refresh token stored in DB (7 days)
+        String refreshTokenValue = randomUUID().toString() + "-" + java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(java.security.SecureRandom.getInstanceStrong().generateSeed(16));
+        java.time.LocalDateTime expiresAt = java.time.LocalDateTime.now().plusDays(7);
+        // compute SHA-256 hash for storage
+        String hash;
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(refreshTokenValue.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) sb.append(String.format("%02x", b));
+            hash = sb.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to hash refresh token", e);
+        }
+        RefreshToken rt = RefreshToken.builder()
+                .user(user.get())
+                .token(refreshTokenValue)
+                .tokenHash(hash)
+                .expiresAt(expiresAt)
+                .build();
+        refreshTokenRepository.save(rt);
+
+        AuthResponse resp = new AuthResponse(accessToken, userDto);
+        resp.setRefreshToken(refreshTokenValue);
+        return resp;
     }
 
     public Authentication getAuthentication(String token) {
