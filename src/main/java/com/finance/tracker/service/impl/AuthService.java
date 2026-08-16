@@ -3,7 +3,9 @@ package com.finance.tracker.service.impl;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.UserDto;
+import com.finance.tracker.dto.auth.UserProfileUpdateRequest;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.exception.ResourceNotFoundException;
 import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.entity.RefreshToken;
@@ -104,8 +106,74 @@ public class AuthService {
         );
     }
 
+    public User updateUserProfile(String userId, UserProfileUpdateRequest request) {
+        User user = getUserDetailsById(userId);
+
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            user.setFullName(buildFullName(request.getFirstName(), request.getLastName(), user.getFullName()));
+        }
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            user.setFullName(buildFullName(request.getFirstName(), request.getLastName(), user.getFullName()));
+        }
+        if (request.getPhoneNumber() != null) {
+            user.setPhone(request.getPhoneNumber());
+        }
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isBlank()) {
+            user.setDateOfBirth(java.time.LocalDate.parse(request.getDateOfBirth()));
+        }
+        if (request.getCountry() != null) {
+            user.setCountryCode(request.getCountry());
+        }
+        if (request.getCurrency() != null) {
+            user.setCurrency(request.getCurrency());
+        }
+        if (request.getProfilePicture() != null) {
+            user.setProfilePicUrl(request.getProfilePicture());
+        }
+        if (request.getAddress() != null) {
+            user.setBio(request.getAddress());
+        }
+        if (request.getCity() != null) {
+            user.setBio(user.getBio() != null ? user.getBio() + "|" + request.getCity() : request.getCity());
+        }
+
+        return userRepository.save(user);
+    }
+
+    public User updateProfilePicture(String userId, String profilePicUrl) {
+        User user = getUserDetailsById(userId);
+        user.setProfilePicUrl(profilePicUrl);
+        return userRepository.save(user);
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
     public List<User> getusers() {
         return userRepository.findAll();
+    }
+
+    public User getUserDetailsById(String userId) {
+        return userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(
+                "No user Found for the user: "+ userId
+        ));
+    }
+
+    private String buildFullName(String firstName, String lastName, String existingFullName) {
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+
+        if (!first.isEmpty() && !last.isEmpty()) {
+            return first + " " + last;
+        }
+        if (!first.isEmpty()) {
+            return first;
+        }
+        if (!last.isEmpty()) {
+            return last;
+        }
+        return existingFullName != null ? existingFullName : "";
     }
 
     /**

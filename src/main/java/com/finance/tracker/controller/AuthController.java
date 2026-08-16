@@ -2,23 +2,35 @@ package com.finance.tracker.controller;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.RegistrationRequest;
+import com.finance.tracker.dto.UserDto;
+import com.finance.tracker.dto.auth.PasswordChangeRequest;
+import com.finance.tracker.dto.auth.PasswordChangeResponse;
+import com.finance.tracker.dto.auth.UserDetailsResponse;
+import com.finance.tracker.dto.auth.UserProfileUpdateRequest;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.service.impl.AccessTokenStore;
 import com.finance.tracker.service.impl.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/v1/auth")
 @CrossOrigin(origins = "*", maxAge = 3600, allowedHeaders = "*")
 //@RequiredArgsConstructor
@@ -26,12 +38,16 @@ public class AuthController {
     private final AuthService authService;
     private final AccessTokenStore accessTokenStore;
     private final com.finance.tracker.repository.RefreshTokenRepository refreshTokenRepository;
+    private final PasswordEncoder passwordEncoder;
     Logger logger = LogManager.getLogger(AuthController.class);
 
-    public AuthController(AuthService authService, AccessTokenStore accessTokenStore, com.finance.tracker.repository.RefreshTokenRepository refreshTokenRepository) {
+    public AuthController(AuthService authService, AccessTokenStore accessTokenStore,
+                         com.finance.tracker.repository.RefreshTokenRepository refreshTokenRepository,
+                         PasswordEncoder passwordEncoder) {
         this.authService = authService;
         this.accessTokenStore = accessTokenStore;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
@@ -217,8 +233,64 @@ public class AuthController {
     }
 
 
-    @GetMapping("/getUser")
-    public ResponseEntity<List<User>> getUser(){
-        return ResponseEntity.ok(authService.getusers());
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<UserDetailsResponse> getUser(@PathVariable String userId) {
+        log.info("get User details: {} ", userId);
+        User u = authService.getUserDetailsById(userId);
+        UserDetailsResponse userDetails = UserMapper.toUserDetails(u);
+        return ResponseEntity.ok(userDetails);
+    }
+
+    @PutMapping("/user/{userId}")
+    public ResponseEntity<UserDetailsResponse> updateUser(@PathVariable String userId,
+                                                        @RequestBody UserProfileUpdateRequest request) {
+        log.info("Update user profile for userId: {}", userId);
+        User updatedUser = authService.updateUserProfile(userId, request);
+        return ResponseEntity.ok(UserMapper.toUserDetails(updatedUser));
+    }
+
+    @PostMapping("/user/{userId}/change-password")
+    public ResponseEntity<PasswordChangeResponse> changePassword(@PathVariable String userId,
+                                                                @RequestBody PasswordChangeRequest request) {
+        log.info("Change password request for userId: {}", userId);
+
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null || request.getConfirmPassword() == null) {
+            return ResponseEntity.badRequest().body(new PasswordChangeResponse(false, "Password fields are required"));
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body(new PasswordChangeResponse(false, "New password and confirm password do not match"));
+        }
+
+        User user = authService.getUserDetailsById(userId);
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            return ResponseEntity.badRequest().body(new PasswordChangeResponse(false, "Current password is incorrect"));
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        authService.saveUser(user);
+
+        return ResponseEntity.ok(new PasswordChangeResponse(true, "Password changed successfully"));
+    }
+
+    @PostMapping("/user/{userId}/profile-picture")
+    public ResponseEntity<UserDetailsResponse> uploadProfilePicture(@PathVariable String userId,
+                                                                   @RequestParam("file") MultipartFile file) {
+        log.info("Upload profile picture for userId: {}", userId);
+        System.out.println("File size: " + file.getSize());
+        System.out.println("File name: " + file.getOriginalFilename());
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            String profilePicUrl = "data:" + file.getContentType() + ";base64," + java.util.Base64.getEncoder().encodeToString(file.getBytes());
+            User updatedUser = authService.updateProfilePicture(userId, profilePicUrl);
+            return ResponseEntity.ok(UserMapper.toUserDetails(updatedUser));
+        } catch (IOException e) {
+            log.error("Error uploading profile picture for userId: {}", userId, e);
+            return ResponseEntity.status(500).build();
+        }
     }
 }
