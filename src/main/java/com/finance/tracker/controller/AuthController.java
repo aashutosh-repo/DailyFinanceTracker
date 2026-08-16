@@ -2,7 +2,6 @@ package com.finance.tracker.controller;
 import com.finance.tracker.dto.AuthRequest;
 import com.finance.tracker.dto.AuthResponse;
 import com.finance.tracker.dto.RegistrationRequest;
-import com.finance.tracker.dto.UserDto;
 import com.finance.tracker.dto.auth.PasswordChangeRequest;
 import com.finance.tracker.dto.auth.PasswordChangeResponse;
 import com.finance.tracker.dto.auth.UserDetailsResponse;
@@ -26,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

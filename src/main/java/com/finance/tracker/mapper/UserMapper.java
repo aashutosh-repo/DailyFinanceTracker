@@ -1,9 +1,7 @@
 package com.finance.tracker.mapper;
 
-import com.finance.tracker.dto.TransactionDto;
 import com.finance.tracker.dto.UserDto;
 import com.finance.tracker.dto.auth.UserDetailsResponse;
-import com.finance.tracker.entity.Transaction;
 import com.finance.tracker.entity.User;
 
 public class UserMapper {
