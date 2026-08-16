@@ -7,6 +7,10 @@ spring:
     name: Finance-Tracking
   profiles:
     active: local
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -22,6 +26,7 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Kolkata
+    show-sql: false
   ai:
     ollama:
       url: http://localhost:11434
@@ -29,7 +34,7 @@ spring:
       model-embedding: nomic-embed-text
     vectorstore:
       pgvector:
-        initialize-schema: true
+        initialize-schema: false
         dimensions: 1024
         index-type: hnsw
         distance-type: cosine_distance
@@ -40,12 +45,12 @@ logging:
   level:
     org.springframework.boot: INFO
 
-vector:
-  datasource:
-    url: jdbc:postgresql://localhost:5433/vectordb
-    username: postgres
-    password: postgres
-
-  store:
-    initialize-schema: true
-    dimensions: 1024
+#vector:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5433/vectordb
+#    username: postgres
+#    password: postgres
+#
+#  store:
+#    initialize-schema: false
+#    dimensions: 1024
