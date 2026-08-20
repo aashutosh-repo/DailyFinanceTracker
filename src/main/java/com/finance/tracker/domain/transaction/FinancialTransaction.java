@@ -29,7 +29,7 @@ public class FinancialTransaction {
     private Long categoryId;
     private String description;
     private LocalDate createdAt;
-    private  LocalDate updatedAt;
+    private LocalDate updatedAt;
     private String updatedBy;
     private String createdBy;
     private LocalDate deletedAt;
@@ -106,7 +106,7 @@ public class FinancialTransaction {
 
 
     public static FinancialTransaction createTransfer(Long userId, Money money, LocalDate transactionDate,
-                                                    Long sourceAccountId,Long destinationAccountId, String description, String incomeSource, String createdBy) {
+                                                    Long sourceAccountId,Long destinationAccountId, String description, String createdBy) {
         validateBasicFields(userId,money, transactionDate, 1L);
         FinancialTransaction expense = FinancialTransaction.builder()
                 .userId(userId)
