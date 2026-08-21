@@ -36,12 +36,27 @@ public class UpdateTransactionCommandHandler implements CommandHandler<UpdateTra
             Money money = Money.of(command.getAmount(),transaction.getMoney().getCurrency());
             transaction.updateAmount(money);
         }
+
+        if (command.getTransactionDate() != null) {
+            transaction.updateTransactionDate(command.getTransactionDate());
+        }
+
         if (command.getDescription() != null && !command.getDescription().isEmpty() ) {
             transaction.updateDescription(command.getDescription());
         }
 
         if (command.getCategoryId() != null && command.getCategoryId() > 0 ) {
             transaction.updateCategory(command.getCategoryId());
+        }
+
+        if (command.getPaymentMethod() != null && command.getPaymentMethod().isEmpty() ) {
+            transaction.updatePaymentMethod(command.getPaymentMethod());
+        }
+       if (command.getReceiptUrl() != null && command.getReceiptUrl().isEmpty() ) {
+            transaction.updateReceiptUrl(command.getReceiptUrl());
+        }
+       if (command.getIncomeSource() != null && command.getIncomeSource().isEmpty() ) {
+            transaction.updateIncomeSource(command.getIncomeSource());
         }
 
         transaction = repository.save(transaction);

@@ -185,6 +185,72 @@ public class FinancialTransaction {
 
     }
 
+    public void updateTransactionDate(LocalDate transactionDate) {
+        try {
+            if (!status.isMutable()) {
+                throw new InvalidTransactionException("cannot update transaction in " + status + "status");
+            }
+
+            if (transactionDate == null) {
+                throw new InvalidTransactionException("Transaction Date cannot be null");
+            }
+        }catch (Exception e) {
+            log.info("there is Some Error", e);
+        }
+
+        this.transactionDate = transactionDate;
+        this.updatedAt = LocalDate.now();
+
+    }
+
+    public void updatePaymentMethod(String paymentMethod) {
+        try {
+            if (!status.isMutable()) {
+                throw new InvalidTransactionException("cannot update transaction in " + status + "status");
+            }
+            if (type == TransactionType.EXPENSE) {
+                throw new InvalidTransactionException("Only Expense Category can be Updated");
+            }
+        }catch (Exception e) {
+            log.info("there is Some Error", e);
+        }
+        this.paymentMethod = paymentMethod;
+        this.updatedAt = LocalDate.now();
+
+    }
+
+    public void updateReceiptUrl(String newReceiptUrl) {
+        try {
+            if (!status.isMutable()) {
+                throw new InvalidTransactionException("cannot update transaction in " + status + "status");
+            }
+            if (type == TransactionType.EXPENSE) {
+                throw new InvalidTransactionException("Only Expense Category can be Updated");
+            }
+        }catch (Exception e) {
+            log.info("there is Some Error", e);
+        }
+        this.receiptUrl = newReceiptUrl;
+        this.updatedAt = LocalDate.now();
+
+    }
+
+    public void updateIncomeSource(String newIncomeSource) {
+        try {
+            if (!status.isMutable()) {
+                throw new InvalidTransactionException("cannot update transaction in " + status + "status");
+            }
+            if (type == TransactionType.INCOME) {
+                throw new InvalidTransactionException("Only INCOME Category can be Updated");
+            }
+        }catch (Exception e) {
+            log.info("there is Some Error", e);
+        }
+        this.incomeSource = newIncomeSource;
+        this.updatedAt = LocalDate.now();
+
+    }
+
     public void addTags(String tag) {
         try {
             if (type != TransactionType.EXPENSE) {
@@ -274,5 +340,4 @@ public class FinancialTransaction {
                 throw new RuntimeException(e);
         }
     }
-
 }

@@ -17,6 +17,7 @@ public class UpdateTransactionCommand {
 
     //fin data
     private String amount;
+    private LocalDate transactionDate;
     private String currency;
     private String description;
     private Long categoryId;
