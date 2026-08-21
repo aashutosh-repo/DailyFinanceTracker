@@ -4,20 +4,20 @@ package com.finance.tracker.entity;
 import com.finance.tracker.domain.transaction.TransactionStatus;
 import com.finance.tracker.domain.transaction.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "financial_transaction")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FinancialTransaction extends BaseEntity{
+public class FinancialTransactionEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

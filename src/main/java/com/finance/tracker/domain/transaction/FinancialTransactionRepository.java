@@ -6,6 +6,7 @@ import java.util.Optional;
 
 public interface FinancialTransactionRepository {
     FinancialTransaction save(FinancialTransaction transaction);
+    void delete(FinancialTransaction transaction);
 
     Optional<FinancialTransaction> findById(TransactionId id);
 
