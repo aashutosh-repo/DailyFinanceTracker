@@ -23,12 +23,9 @@
 ```java
 package com.personalfinance.service;
 
-import com.finance.tracker.entity.Expense;
 import com.finance.tracker.entity.User;
 import com.finance.tracker.dto.expense.*;
 import com.finance.tracker.repository.BudgetRepository;
-import com.finance.tracker.repository.ExpenseRepository;
-import com.finance.tracker.service.impl.ExpenseService;
 import com.personalfinance.mapper.ExpenseMapper;
 import com.personalfinance.exception.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -281,9 +278,7 @@ class ExpenseServiceTest {
 ```java
 package com.personalfinance.integration;
 
-import com.finance.tracker.entity.Expense;
 import com.finance.tracker.entity.User;
-import com.finance.tracker.repository.ExpenseRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.personalfinance.DailyFinanceTrackerApplication;
 import com.finance.tracker.dto.expense.*;
@@ -604,7 +599,6 @@ spring:
 package com.personalfinance.util;
 
 import com.finance.tracker.entity.Budget;
-import com.finance.tracker.entity.Expense;
 import com.finance.tracker.entity.User;
 
 import java.math.BigDecimal;

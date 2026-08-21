@@ -2,7 +2,6 @@ package com.finance.tracker.service.impl;
 
 import com.finance.tracker.chatbot.rag.context.BudgetStatus;
 import com.finance.tracker.constants.BudgetType;
-import com.finance.tracker.constants.TransactionCategory;
 import com.finance.tracker.dto.budget.BudgetRequest;
 import com.finance.tracker.dto.budget.BudgetResponse;
 import com.finance.tracker.entity.Budget;
@@ -10,7 +9,6 @@ import com.finance.tracker.entity.User;
 import com.finance.tracker.events.ChangeType;
 import com.finance.tracker.events.FinancialDataChangedEvent;
 import com.finance.tracker.repository.BudgetRepository;
-import com.finance.tracker.repository.TransactionRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
 import jakarta.transaction.Transactional;
@@ -32,7 +30,6 @@ public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final TransactionRepository transactionRepository;
     private final FinancialTransactionReadService transactionReadService;
 
     @Override

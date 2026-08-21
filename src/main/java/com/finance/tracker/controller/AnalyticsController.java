@@ -2,6 +2,7 @@ package com.finance.tracker.controller;
 
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
+import com.finance.tracker.service.impl.FinancialTransactionReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

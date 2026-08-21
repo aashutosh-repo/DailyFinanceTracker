@@ -3,9 +3,6 @@ package com.finance.tracker.chatbot.services.impl;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.services.FinancialContextService;
 import com.finance.tracker.service.BudgetService;
-import com.finance.tracker.service.IncomeService;
-import com.finance.tracker.service.TransactionService;
-import com.finance.tracker.service.impl.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

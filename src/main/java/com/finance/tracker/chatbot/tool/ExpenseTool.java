@@ -1,7 +1,6 @@
 package com.finance.tracker.chatbot.tool;
 
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
-import com.finance.tracker.service.TransactionService;
 import com.finance.tracker.service.impl.FinancialTransactionReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
