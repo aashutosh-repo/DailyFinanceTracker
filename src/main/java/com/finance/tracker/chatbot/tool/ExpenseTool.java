@@ -2,6 +2,7 @@ package com.finance.tracker.chatbot.tool;
 
 import com.finance.tracker.chatbot.rag.context.CategoryExpense;
 import com.finance.tracker.service.TransactionService;
+import com.finance.tracker.service.impl.FinancialTransactionReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ import java.util.Set;
 @Slf4j
 public class ExpenseTool extends AbstractAiTool{
 
-    private final TransactionService transactionService;
+    private final FinancialTransactionReadService transactionService;
 
     private static final Set<String> EXPENSE_KEYWORDS = Set.of(
             "expense","expenses", "spend", "spent", "spending", "debit", "outflow",
@@ -41,7 +42,7 @@ public class ExpenseTool extends AbstractAiTool{
         YearMonth month = YearMonth.now();
         //TODO: check monthly check we need data of one month (e.g 1st of July to maybe 20th July not 20 June to 20 JULY)
         BigDecimal totalExpense = transactionService.getTotalExpense(userId,month);
-        List<CategoryExpense> categoryExpenses = transactionService.getCategoryExpenses(userId, month);
+        List<CategoryExpense> categoryExpenses = transactionService.getCategoryExpense(userId, month);
         StringBuilder data = new StringBuilder();
         data.append("Total Expense for ").append(month).append(" : $").append(totalExpense);
 

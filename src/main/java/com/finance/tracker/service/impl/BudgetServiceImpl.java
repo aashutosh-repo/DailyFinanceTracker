@@ -14,12 +14,12 @@ import com.finance.tracker.repository.TransactionRepository;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.service.BudgetService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -33,6 +33,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TransactionRepository transactionRepository;
+    private final FinancialTransactionReadService transactionReadService;
 
     @Override
     @Transactional
@@ -137,21 +138,14 @@ public class BudgetServiceImpl implements BudgetService {
         LocalDate end = month.atEndOfMonth();
 
         List<Budget> availableBudget = budgetRepository.getMonthlyBudgetStatus(userId, "MONTHLY", start, end);
-        List<Object[]> rawExpenses = transactionRepository.getCategoryExpenses(userId, start, end);
 
-        Map<String, BigDecimal> actualCategory = new HashMap<>();
-
-        for(Object[]  raw : rawExpenses){
-             TransactionCategory cat = (TransactionCategory)raw[0];
-             BigDecimal amount = (BigDecimal) raw[1];
-             actualCategory.put(cat.name(), amount);
-        }
+        Map<Integer, BigDecimal> actualByCategory = transactionReadService.getExpenseTotalsByBudgetCategoryId(userId, month);
         List<BudgetStatus> statusList = new ArrayList<>();
 
         for(Budget b : availableBudget){
 
             BudgetType type = BudgetType.fromId(b.getCategoryId());
-            BigDecimal actual = actualCategory.getOrDefault(type.name(), BigDecimal.ZERO);
+            BigDecimal actual = actualByCategory.getOrDefault(b.getCategoryId(), BigDecimal.ZERO);
             boolean exceeded = actual.compareTo(b.getAmount())> 0;
 
             if(exceeded) {
@@ -167,31 +161,26 @@ public class BudgetServiceImpl implements BudgetService {
         BigDecimal percentageUsed = BigDecimal.ZERO;
         String budgetStatus = "SAFE";
 
-        // Calculate current spending for this budget's category within the budget period
-//        if (budget.getCategoryId() != null) {
-//            currentSpending = expenseRepository.sumExpensesByCategoryAndDateRange(
-//                    budget.getUser().getId(),
-//                    budget.getCategoryId(),
-//                    budget.getStartDate(),
-//                    budget.getEndDate()
-//            );
-//
-//            // Calculate percentage used
-//            if (budget.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-//                percentageUsed = currentSpending
-//                        .multiply(BigDecimal.valueOf(100))
-//                        .divide(budget.getAmount(), 2, RoundingMode.HALF_UP);
-//            }
-//
-//            // Determine budget status
-//            if (currentSpending.compareTo(budget.getAmount()) > 0) {
-//                budgetStatus = "EXCEEDED";
-//            } else if (percentageUsed.compareTo(budget.getAlertThreshold() != null ? budget.getAlertThreshold() : BigDecimal.valueOf(80)) >= 0) {
-//                budgetStatus = "WARNING";
-//            }
-//        }
+        if(budget.getCategoryId() != null) {
+            currentSpending = transactionReadService.getExpenseTotalForCategory(budget.getExtUserId(),
+                    Long.valueOf(budget.getCategoryId()),
+                    budget.getStartDate(),
+                    budget.getEndDate());
+
+            if (budget.getAmount().compareTo(BigDecimal.ZERO) >0 ) {
+               percentageUsed = currentSpending.multiply(BigDecimal.valueOf(100))
+                       .divide(budget.getAmount(),2, RoundingMode.HALF_UP);
+            }
+
+            if (currentSpending.compareTo(budget.getAmount()) > 0) {
+                budgetStatus = "EXCEEDED";
+            } else if (percentageUsed.compareTo(budget.getAlertThreshold() != null ? budget.getAlertThreshold() : BigDecimal.valueOf(80)) >=0) {
+                budgetStatus = "WARNING";
+            }
+        }
+
         BudgetType type = BudgetType.fromId(budget.getCategoryId());
-        
+
         return BudgetResponse.builder()
                 .id(budget.getId())
                 .categoryName(type.name())

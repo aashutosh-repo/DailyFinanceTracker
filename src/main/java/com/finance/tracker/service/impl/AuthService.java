@@ -10,7 +10,9 @@ import com.finance.tracker.mapper.UserMapper;
 import com.finance.tracker.repository.UserRepository;
 import com.finance.tracker.entity.RefreshToken;
 import com.finance.tracker.repository.RefreshTokenRepository;
+import com.sun.source.doctree.SeeTree;
 import lombok.RequiredArgsConstructor;
+import org.postgresql.largeobject.LargeObjectManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,10 +54,10 @@ public class AuthService {
 
     public AuthResponse login(AuthRequest req) throws NoSuchAlgorithmException {
         Optional<User> user = userRepository.findByEmail(req.getEmail());
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             user = userRepository.findByUsername(req.getEmail());
         }
-        if(user.isEmpty()) {
+        if (user.isEmpty()) {
             throw new RuntimeException("Invalid credentials");
         }
         if (!passwordEncoder.matches(req.getPassword(), user.get().getPasswordHash())) {
@@ -156,7 +159,7 @@ public class AuthService {
 
     public User getUserDetailsById(String userId) {
         return userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException(
-                "No user Found for the user: "+ userId
+                "No user Found for the user: " + userId
         ));
     }
 
@@ -189,20 +192,26 @@ public class AuthService {
     }
 
     public UserDto authenticate(String token) {
-        String userName= jwtService.extractUsername(token);
-        User user = userRepository.findByEmail(userName).orElseThrow(()-> new RuntimeException("User Not Found"));
+        String userName = jwtService.extractUsername(token);
+        User user = userRepository.findByEmail(userName).orElseThrow(() -> new RuntimeException("User Not Found"));
         return UserMapper.toDto(user);
     }
 
-//    @PostConstruct
-//    public void createDemoUser() {
-//        if (userRepository.findByEmail("aashu@gmail.com").isEmpty()) {
-//            User u = User.builder()
-//                    .email("ashu@gmail.com")
-//                    .passwordHash(encoder.encode("ashu@123"))
-//                    .fullName("Demo User")
-//                    .build();
-//            userRepository.save(u);
-//        }
-//    }
+    public Long resolveDataBaseUserId(String userId) {
+        if(userId == null || userId.isEmpty()) {
+            return 1L;
+        }
+        return userRepository.findByUserId(userId)
+                .map(User::getId)
+                .orElseGet(() -> parseDatabaseUserId(userId));
+    }
+
+    private Long parseDatabaseUserId(String userId) {
+        try{
+            return Long.valueOf(userId);
+        } catch (NumberFormatException e) {
+            throw new ResourceNotFoundException("User Not Found with Id : "+ userId);
+        }
+    }
+
 }

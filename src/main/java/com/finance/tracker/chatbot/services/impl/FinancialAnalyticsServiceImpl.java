@@ -6,8 +6,7 @@ import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.rag.context.MonthlyComparison;
 import com.finance.tracker.chatbot.services.FinancialAnalyticsService;
 import com.finance.tracker.service.BudgetService;
-import com.finance.tracker.service.IncomeService;
-import com.finance.tracker.service.TransactionService;
+import com.finance.tracker.service.impl.FinancialTransactionReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -23,21 +22,19 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService {
-    private final IncomeService incomeService;
-    private final TransactionService transactionService;
+    private final FinancialTransactionReadService transactionReadService;
     private final BudgetService budgetService;
 
     @Override
     @Cacheable(value = "financialContext", key="#userId+ '_' + #month")
     public FinancialContext getMonthlyContext(String userId, YearMonth month) {
 
-        BigDecimal totalIncome = incomeService.getIncomeByMonth(userId, month);
+        BigDecimal totalIncome = transactionReadService.getTotalIncome(userId, month);
 
-        BigDecimal totalExpense = transactionService.getTotalExpense(userId, month);
+        BigDecimal totalExpense = transactionReadService.getTotalExpense(userId, month);
 
-        List<CategoryExpense> categoryExpenses =
-                Optional.ofNullable(
-                                transactionService.getCategoryExpenses(userId, month))
+        List<CategoryExpense> categoryExpenses = Optional.ofNullable(
+                                transactionReadService.getCategoryExpense(userId, month))
                         .orElse(List.of());
 
         List<BudgetStatus> budgetStatuses = Optional.ofNullable(
@@ -76,7 +73,7 @@ public class FinancialAnalyticsServiceImpl implements FinancialAnalyticsService 
     private List<MonthlyComparison> buildCategoryComparison(String userId, YearMonth currentMonth, List<CategoryExpense> currentExpense){
         YearMonth previousMonth = currentMonth.minusMonths(1);
         List<CategoryExpense> previousExpense = Optional.ofNullable(
-                transactionService.getCategoryExpenses(userId, previousMonth))
+                transactionReadService.getCategoryExpense(userId, previousMonth))
                 .orElse(List.of());
 
         Map<String, BigDecimal> previousMap =  previousExpense.stream().collect(

@@ -13,6 +13,6 @@ public interface FinancialTransactionRepository {
     List<FinancialTransaction> findByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
     List<FinancialTransaction> findActiveByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
     List<FinancialTransaction> findByUserAndTypeAndDateRange(Long userId, TransactionType type, LocalDate startDate, LocalDate endDate);
-    List<FinancialTransaction> findByUserAndCategoryAndDateRange(Long userId, Long categoryId, LocalDate startDate, LocalDate enddate);
+    List<FinancialTransaction> findByUserAndCategoryAndDateRange(Long userId, Long categoryId, LocalDate startDate, LocalDate endDate);
     boolean existById(TransactionId id);
 }
