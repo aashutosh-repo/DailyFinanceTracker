@@ -1,9 +1,6 @@
 package com.finance.tracker.service.impl;
 
-import com.finance.tracker.domain.transaction.FinancialTransaction;
-import com.finance.tracker.domain.transaction.FinancialTransactionRepository;
-import com.finance.tracker.domain.transaction.TransactionId;
-import com.finance.tracker.domain.transaction.TransactionType;
+import com.finance.tracker.domain.transaction.*;
 import com.finance.tracker.entity.FinancialTransactionEntity;
 import com.finance.tracker.mapper.FinancialTransactionMapper;
 import com.finance.tracker.repository.FinancialTransactionJpaRepository;
@@ -31,7 +28,7 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionRepo
 
         FinancialTransaction savedDomain = transactionMapper.toDomain(savedEntity);
 
-        for (Object event : savedDomain.getDomainEventAndClear()) {
+        for (Object event : transaction.getDomainEventAndClear()) {
             eventPublisher.publishEvent(event);
         }
         return savedDomain;
@@ -52,7 +49,7 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionRepo
 
     @Override
     public List<FinancialTransaction> findActiveByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
-        return jpaRepository.findActiveByUserIdAndDateRange(userId, startDate, endDate)
+        return jpaRepository.findActiveByUserIdAndDateRange(userId, TransactionStatus.POSTED, startDate, endDate)
                 .stream()
                 .map(transactionMapper::toDomain)
                 .toList();

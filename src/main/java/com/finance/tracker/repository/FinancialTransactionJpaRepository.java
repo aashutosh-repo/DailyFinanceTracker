@@ -1,5 +1,6 @@
 package com.finance.tracker.repository;
 
+import com.finance.tracker.domain.transaction.TransactionStatus;
 import com.finance.tracker.domain.transaction.TransactionType;
 import com.finance.tracker.entity.FinancialTransactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +15,7 @@ import java.util.List;
 public interface FinancialTransactionJpaRepository extends JpaRepository<FinancialTransactionEntity, Long> {
 
 
-    @Query("Select t from FinancialTransaction t "+
+    @Query("Select t from FinancialTransactionEntity t "+
             "Where t.userId = :userId "+
             "AND t.transactionDate >= :startDate " +
             "AND t.transactionDate <= :endDate "+
@@ -22,16 +23,17 @@ public interface FinancialTransactionJpaRepository extends JpaRepository<Financi
     List<FinancialTransactionEntity> findByUserIdAndDateRange(@Param("userId") Long userId,
                                                         @Param("startDate") LocalDate startDate,
                                                         @Param("endDate") LocalDate endDate);
-    @Query("Select t from FinancialTransaction t "+
+    @Query("Select t from FinancialTransactionEntity t "+
             "Where t.userId = :userId "+
-            "AND t.status = 'POSTED' "+
+            "AND t.status = :status "+
             "AND t.transactionDate >= :startDate " +
             "AND t.transactionDate <= :endDate "+
             "Order By t.transactionDate DESC")
     List<FinancialTransactionEntity> findActiveByUserIdAndDateRange(@Param("userId") Long userId,
+                                                        @Param("status") TransactionStatus status,
                                                         @Param("startDate") LocalDate startDate,
                                                         @Param("endDate") LocalDate endDate);
-    @Query("Select t from FinancialTransaction t "+
+    @Query("Select t from FinancialTransactionEntity t "+
             "Where t.userId = :userId "+
             "AND t.type = :type "+
             "AND t.transactionDate >= :startDate " +
@@ -42,7 +44,7 @@ public interface FinancialTransactionJpaRepository extends JpaRepository<Financi
                                                         @Param("startDate") LocalDate startDate,
                                                         @Param("endDate") LocalDate endDate);
 
-    @Query("Select t from FinancialTransaction t "+
+    @Query("Select t from FinancialTransactionEntity t "+
             "Where t.userId = :userId "+
             "AND t.categoryId = :categoryId "+
             "AND t.transactionDate >= :startDate " +

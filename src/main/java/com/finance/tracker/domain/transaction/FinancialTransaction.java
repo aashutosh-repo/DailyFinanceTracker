@@ -47,7 +47,8 @@ public class FinancialTransaction {
     private BigDecimal quantity;
     private String price;
 
-    @Getter
+    @Getter(AccessLevel.PACKAGE)
+    @Builder.Default
     private List<Object> domainEvents = new ArrayList<>();
 
 
@@ -260,7 +261,7 @@ public class FinancialTransaction {
 
                 throw new InvalidTransactionException("UserId must not be Null");
             }
-            if (money == null || money.isPositive()) {
+            if (money == null || !money.isPositive()) {
                 throw new InvalidTransactionException("Amount must be Positive : " + money);
             }
             if (transactionDate == null) {

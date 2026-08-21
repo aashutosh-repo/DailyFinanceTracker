@@ -41,7 +41,8 @@ public class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/swagger-ui/index.html",
-                                        "/api/llm/**"
+                                        "/api/llm/**",
+                                        "/api/v2/transactions/**"
                                 ).permitAll()
                                 .requestMatchers("/actuator/health").permitAll()
                                 .requestMatchers("/ping").permitAll()
