@@ -20,6 +20,8 @@ public class UpdateTransactionRequest {
     @DecimalMin(value = "0.01", message = "amount must be greater than 0")
     private BigDecimal amount;
 
+    private  LocalDate transactionDate;
+
     @NotNull(message = "category Id cannot be null")
     @Positive(message = "category id must me positive")
     private Long categoryId;

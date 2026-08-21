@@ -13,10 +13,9 @@ public class DeleteTransactionCommand {
     private Long transactionId;
     private Long userId;
 
-
     private String reason;
     
     //Audit
-    private String createdBy;
+    private String deletedBy;
 
 }
