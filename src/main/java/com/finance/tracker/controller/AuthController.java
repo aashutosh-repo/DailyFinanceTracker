@@ -188,7 +188,7 @@ public class AuthController {
             }
 
             // Verify token validity using AccessTokenStore (opaque tokens created at login)
-            boolean isValid = authService.verifyToken(token);
+            boolean isValid = accessTokenStore.validate(token);
 
             if (isValid) {
                 logger.debug("Token verification successful");
