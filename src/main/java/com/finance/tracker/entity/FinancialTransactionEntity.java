@@ -23,7 +23,9 @@ public class FinancialTransactionEntity extends BaseEntity{
     private Long id;
     private Long userId;
 
+    @Enumerated(EnumType.STRING)
     private TransactionType type;
+    @Enumerated(EnumType.STRING)
     private TransactionStatus status;
 
     private BigDecimal amount;

@@ -9,9 +9,8 @@ import java.time.LocalDateTime;
  * All entities should extend this class for consistency.
  */
 @MappedSuperclass
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
+@RequiredArgsConstructor
 public abstract class BaseEntity {
     
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -16,10 +16,8 @@ import com.finance.tracker.service.impl.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.Get;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -54,7 +52,7 @@ public class DailyTransactionRestController {
                 .transactionDate(request.getTransactionDate())
                 .categoryId(request.getCategoryId())
                 .description(request.getDescription())
-                .paymentMethod(request.getPaymentMethod())
+                .paymentMethod(request.getExpenseCategory())
                 .receiptUrl(request.getReceiptUrl())
                 .createdBy(request.getCreatedBy())
                 .build();
@@ -136,7 +134,7 @@ public class DailyTransactionRestController {
         Long resolvedUserId = resolvedUserId(userId);
 
         TransactionType transactionType = null;
-        if (request.getType() == null && !request.getType().isBlank()) {
+        if (request.getType() != null && request.getType().isBlank()) {
             transactionType = TransactionType.valueOf(request.getType().toUpperCase());
         }
 
@@ -152,13 +150,13 @@ public class DailyTransactionRestController {
                 .sortOrder(request.getSortOrder())
                 .build();
         ListTransactionQueryResult result  = listTransactionQueryHandler.handle(query);
-        return ResponseEntity.ok(result);
+          return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<TransactionDTO>  updateTransactions(
             @PathVariable Long id,
-            @Valid @ModelAttribute UpdateTransactionRequest request,
+            @ModelAttribute UpdateTransactionRequest request,
             @RequestParam(value = "userId", defaultValue = "1") String userId) {
 
         Long resolvedUserId = resolvedUserId(userId);

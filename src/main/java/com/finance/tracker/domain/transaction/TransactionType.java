@@ -1,19 +1,18 @@
 package com.finance.tracker.domain.transaction;
 
+import lombok.Getter;
+
+@Getter
 public enum TransactionType {
     INCOME("income"),
     EXPENSE("Expense"),
-    TRANSSFER("Transfer"),
+    TRANSFER("Transfer"),
     INVESTMENT("investment");
 
     private final String label;
 
     TransactionType(String  label) {
         this.label = label;
-    }
-
-    public String  getLabel() {
-        return label;
     }
 
     public boolean affectsBalance() {

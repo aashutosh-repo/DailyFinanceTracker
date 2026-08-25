@@ -1,8 +1,11 @@
 package com.finance.tracker.domain.transaction;
 
+import lombok.Getter;
+
+@Getter
 public enum TransactionStatus {
     PENDING("Pending"),
-    POSTED("Posted"),
+    POSTED("ARCHIVED"),
     CANCELLED("Cancelled"),
     ARCHIEVED("Archived");
 
@@ -12,16 +15,12 @@ public enum TransactionStatus {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     public boolean isActive() {
         return this== POSTED;
     }
 
     public boolean isMutable() {
-        return this== PENDING || this == POSTED;
+        return this == PENDING || this == POSTED;
     }
 
     public boolean isTerminal() {

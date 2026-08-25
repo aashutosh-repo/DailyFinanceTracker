@@ -1,12 +1,9 @@
 package com.finance.tracker.application.handler.query;
 
-import com.finance.tracker.application.dto.TransactionDTO;
 import com.finance.tracker.application.handler.QueryHandler;
 import com.finance.tracker.application.mapper.TransactionMapper;
 import com.finance.tracker.application.query.FinancialSummeryDTO;
 import com.finance.tracker.application.query.GetFinancialSummeryQuery;
-import com.finance.tracker.application.query.ListTransactionQuery;
-import com.finance.tracker.application.query.ListTransactionQueryResult;
 import com.finance.tracker.domain.transaction.FinancialTransaction;
 import com.finance.tracker.domain.transaction.FinancialTransactionRepository;
 import com.finance.tracker.domain.transaction.TransactionStatus;
@@ -16,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +60,7 @@ public class GetFinancialSummeryQueryHandler implements QueryHandler<GetFinancia
                 expenseCount++;
                 String categoryKey = "Category_"+transaction.getCategoryId();
                 expenseByCategory.put(categoryKey, expenseByCategory.getOrDefault(categoryKey, BigDecimal.ZERO).add(amount));
-            }else if (transaction.getType() == TransactionType.TRANSSFER) {
+            }else if (transaction.getType() == TransactionType.TRANSFER) {
                 transferCount ++;
             }
         }

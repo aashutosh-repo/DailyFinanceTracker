@@ -20,7 +20,7 @@ public class BudgetController {
 
     @PostMapping
     public ResponseEntity<BudgetResponse> createBudget(
-            @Valid @RequestBody BudgetRequest request,
+            @RequestBody BudgetRequest request,
             @RequestParam String userId) {
         try {
             BudgetResponse response = budgetService.createBudget(request, userId);

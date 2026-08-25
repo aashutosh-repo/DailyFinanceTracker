@@ -11,8 +11,6 @@ import jakarta.transaction.InvalidTransactionException;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-
 @Service
 @RequiredArgsConstructor
 public class CreateExpenseCommandHandler implements CommandHandler<CreateExpenseCommand, TransactionDTO> {
@@ -26,8 +24,12 @@ public class CreateExpenseCommandHandler implements CommandHandler<CreateExpense
 
         Money money = Money.of(command.getAmount(),command.getCurrency());
         FinancialTransaction expense = FinancialTransaction.createExpense(
-                command.getUserId(), money, command.getTransactionDate(),
-                command.getCategoryId(), command.getDescription(), command.getPaymentMethod(),
+                command.getUserId(),
+                money,
+                command.getTransactionDate(),
+                command.getCategoryId(),
+                command.getDescription(),
+                command.getPaymentMethod(),
                 command.getCreatedBy()
         );
 

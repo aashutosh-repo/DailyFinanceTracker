@@ -24,6 +24,8 @@ public class CreateTransactionRequest {
     @Size(min = 3, max = 3, message = "currency must be of 3 CHAR")
     private String currency;
 
+    private String expenseCategory;
+
     @NotNull(message = "transaction date is required")
     @PastOrPresent(message = "Transaction date cannot be in future")
     private LocalDate transactionDate;
@@ -36,15 +38,15 @@ public class CreateTransactionRequest {
     @Size(max = 100, message = "max size more than 100 char of income source not allowed")
     private String description;
 
-    @NotBlank(message = "payment Method cannot be blank")
-    @Size(max = 50, message = "max size of payment Method not allowed")
+//    @NotBlank(message = "payment Method cannot be blank")
+//    @Size(max = 50, message = "max size of payment Method not allowed")
     private String paymentMethod;
 
-    @NotBlank(message = "receipt URL cannot be blank")
-    @Size(max = 1000, message = "max size than 1000 char Receipt URL not allowed")
+//    @NotBlank(message = "receipt URL cannot be blank")
+//    @Size(max = 1000, message = "max size than 1000 char Receipt URL not allowed")
     private String receiptUrl;
 
-    @NotBlank(message = "created By required")
-    @Size(max = 100, message = "max size >100 of Created By not allowed")
+//    @NotBlank(message = "created By required")
+//    @Size(max = 100, message = "max size >100 of Created By not allowed")
     private String createdBy;
 }

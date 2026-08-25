@@ -111,7 +111,7 @@ public class FinancialTransaction {
         validateBasicFields(userId,money, transactionDate, 1L);
         FinancialTransaction expense = FinancialTransaction.builder()
                 .userId(userId)
-                .type(TransactionType.TRANSSFER)
+                .type(TransactionType.TRANSFER)
                 .status(TransactionStatus.POSTED)
                 .money(money)
                 .transactionDate(transactionDate)
@@ -127,7 +127,7 @@ public class FinancialTransaction {
                 .build();
 
         expense.domainEvents.add(new TransactionCreatedEvent(
-                null, userId, TransactionType.TRANSSFER, money, transactionDate,null, description
+                null, userId, TransactionType.TRANSFER, money, transactionDate,null, description
         ));
         return expense;
     }
@@ -173,7 +173,7 @@ public class FinancialTransaction {
                 throw new InvalidTransactionException("cannot update transaction in " + status + "status");
             }
 
-            if (type == TransactionType.TRANSSFER) {
+            if (type == TransactionType.TRANSFER) {
                 throw new InvalidTransactionException("cannot change category of a TRANSFER");
             }
         }catch (Exception e) {
@@ -292,7 +292,6 @@ public class FinancialTransaction {
         domainEvents.add(new TransactionDeleteEvent(
                         this.id, this.userId, this.money, reason
         ));
-
     }
 
     public void archive() {
@@ -324,7 +323,6 @@ public class FinancialTransaction {
     private static void validateBasicFields(Long userId, Money money, LocalDate transactionDate, Long categoryId) {
         try {
             if (userId == null || userId == 0) {
-
                 throw new InvalidTransactionException("UserId must not be Null");
             }
             if (money == null || !money.isPositive()) {

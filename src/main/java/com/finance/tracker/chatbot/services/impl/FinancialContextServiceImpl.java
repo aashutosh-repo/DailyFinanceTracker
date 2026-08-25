@@ -3,6 +3,7 @@ package com.finance.tracker.chatbot.services.impl;
 import com.finance.tracker.chatbot.rag.context.FinancialContext;
 import com.finance.tracker.chatbot.services.FinancialContextService;
 import com.finance.tracker.service.BudgetService;
+import com.finance.tracker.service.impl.FinancialTransactionReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,26 +13,25 @@ import java.time.YearMonth;
 @Service
 @RequiredArgsConstructor
 public class FinancialContextServiceImpl implements FinancialContextService {
-    private final ExpenseService expenseService;
-    private final IncomeService incomeService;
     private final BudgetService budgetService;
-    private final TransactionService transactionService;
+    private final FinancialTransactionReadService financialTransactionReadService;
+
 
     @Override
     public FinancialContext getMonthlyContext(String userId, YearMonth month) {
         // Income
         BigDecimal totalIncome =
-                incomeService.getIncomeByMonth(userId, month);
+                financialTransactionReadService.getTotalIncome(userId, month);
         // Expenses
         BigDecimal totalExpense =
-                transactionService.getTotalExpense(userId, month);
+                financialTransactionReadService.getTotalExpense(userId, month);
         FinancialContext context = FinancialContext.builder()
                 .userId(userId)
                 .month(month)
                 .totalIncome(totalIncome)
                 .totalExpense(totalExpense)
                 .totalSavings(totalIncome.subtract(totalExpense))
-                .categoryExpenses(transactionService.getCategoryExpenses(userId, month))
+                .categoryExpenses(financialTransactionReadService.getCategoryExpense(userId, month))
                 .budgetStatuses(budgetService.getMonthlyBudgetsStatus(userId,month))
                 .build();
         return context;
