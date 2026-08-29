@@ -3,9 +3,17 @@ from langchain_core.tools import tool
 from app.rag.search_service import (
     search_knowledge
 )
+from app.rag.context_compressor import (
+    compress_documents
+)
+
 
 from app.rag.retrieval_strategy import (
     choose_retrieval_strategy
+)
+
+from app.rag.relevance_filter import (
+    filter_relevant_results
 )
 
 
@@ -21,107 +29,131 @@ def search_stock_knowledge(
 
     print("\n========== RAG TOOL CALLED ==========")
 
-    print(
-        f"Question: {question}"
-    )
+    print(f"Question: {question}")
 
-    print(
-        f"Company Filter: {company}"
-    )
+    print(f"Company Filter: {company}")
 
 
     # =====================================
-    # Choose Retrieval Strategy
+    # 1. Choose Retrieval Strategy
     # =====================================
 
     strategy = choose_retrieval_strategy(
         question
     )
 
-
     print(
-        f"Retrieval Strategy: {strategy.value}"
+        f"Retrieval Strategy: "
+        f"{strategy.value}"
     )
 
 
     # =====================================
-    # Execute Retrieval
+    # 2. Retrieve Documents
     # =====================================
 
-    documents = search_knowledge(
-
+    raw_results = search_knowledge(
         question=question,
-
         company=company,
-
         search_type=strategy.value
     )
 
-
     print(
-        f"Retrieved Documents: "
-        f"{len(documents)}"
+        f"Raw Results: "
+        f"{len(raw_results)}"
     )
 
 
     # =====================================
-    # Format Results
+    # 3. Print Raw Results
     # =====================================
 
-    results = []
-
-
-    for index, document in enumerate(
-            documents,
+    for index, (document, score) in enumerate(
+            raw_results,
             start=1
     ):
 
-        source = document.metadata.get(
-            "source_file",
-            "unknown"
-        )
-
-
-        results.append({
-
-            "rank":
-                index,
-
-            "content":
-                document.page_content,
-
-            "source":
-                source,
-
-            "metadata":
-                document.metadata
-        })
-
+        print(f"\nRaw Result {index}")
 
         print(
-            f"\nResult {index}"
+            f"Source: "
+            f"{document.metadata.get('source_file')}"
         )
 
         print(
-            f"Source: {source}"
+            f"Score: {score}"
         )
 
         print(
             f"Content: "
-            f"{document.page_content[:250]}"
+            f"{document.page_content[:200]}"
         )
 
 
-    print(
-        "\n===================================="
+    # =====================================
+    # 4. Filter Relevant Results
+    # =====================================
+
+    relevant_results = filter_relevant_results(
+        raw_results
     )
 
+    print(
+        f"\nRelevant Results: "
+        f"{len(relevant_results)}"
+    )
+
+    # =====================================
+    # Compress Relevant Context
+    # =====================================
+
+    compressed_results = compress_documents(
+        relevant_results,
+        max_chars=1200
+    )
+
+
+    print(
+        f"Compressed Results: "
+        f"{len(compressed_results)}"
+    )
+
+
+    # =====================================
+    # No Useful Context
+    # =====================================
+
+    if not compressed_results:
+
+        return {
+
+            "search_type":
+                strategy.value,
+
+            "found":
+                False,
+
+            "message":
+                "No sufficiently relevant information "
+                "was found in the knowledge base.",
+
+            "results":
+                []
+        }
+
+
+    # =====================================
+    # Return Compressed Context
+    # =====================================
 
     return {
 
         "search_type":
             strategy.value,
 
+        "found":
+            True,
+
         "results":
-            results
+            compressed_results
     }

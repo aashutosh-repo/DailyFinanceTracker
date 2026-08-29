@@ -274,11 +274,15 @@ Rules:
   company information, or financial facts.
 - If multiple tools were used, combine the
   information naturally.
-- Clearly separate different types of information
-  when useful.
-- If a tool returned an error, explain that the
-  information could not be retrieved.
-- Do not mention internal tool names unless useful.
+- If a RAG tool returns found=false,
+  clearly tell the user that the requested
+  information is not available in the
+  current knowledge base.
+- Do not fill missing information using
+  your own knowledge.
+- If a tool returned an error,
+  explain that the information could not
+  be retrieved.
 - Keep the answer clear and concise.
 """
 

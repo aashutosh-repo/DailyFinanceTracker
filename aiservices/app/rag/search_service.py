@@ -16,65 +16,52 @@ def search_knowledge(
     metadata_filter = {}
 
     if company:
-
-        metadata_filter["company"] = (
-            company.upper()
-        )
-
+        metadata_filter["company"] = company.upper()
 
     if document_type:
+        metadata_filter["document_type"] = document_type
 
-        metadata_filter["document_type"] = (
-            document_type
+
+    # =====================================
+    # Similarity Search With Scores
+    # =====================================
+
+    if search_type == "similarity":
+
+        results = vector_store.similarity_search_with_score(
+            query=question,
+            k=k,
+            filter=metadata_filter or None
         )
 
+        return results
+
 
     # =====================================
-    # Build Search Configuration
+    # MMR Search
     # =====================================
 
-    search_kwargs = {
-        "k": k
-    }
+    elif search_type == "mmr":
 
-
-    if metadata_filter:
-
-        search_kwargs["filter"] = (
-            metadata_filter
+        documents = vector_store.max_marginal_relevance_search(
+            query=question,
+            k=k,
+            fetch_k=10,
+            lambda_mult=0.5,
+            filter=metadata_filter or None
         )
 
-
-    # =====================================
-    # MMR Configuration
-    # =====================================
-
-    if search_type == "mmr":
-
-        search_kwargs["fetch_k"] = 10
-
-        search_kwargs["lambda_mult"] = 0.5
+        # MMR does not return scores
+        return [
+            (document, None)
+            for document in documents
+        ]
 
 
     # =====================================
-    # Create Retriever
+    # Unsupported Strategy
     # =====================================
 
-    retriever = vector_store.as_retriever(
-
-        search_type=search_type,
-
-        search_kwargs=search_kwargs
+    raise ValueError(
+        f"Unsupported search type: {search_type}"
     )
-
-
-    # =====================================
-    # Execute Search
-    # =====================================
-
-    documents = retriever.invoke(
-        question
-    )
-
-
-    return documents
