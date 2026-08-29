@@ -1,0 +1,32 @@
+Stock Analysis Concepts
+
+Price Change
+
+Price change represents the difference between the ending
+price and starting price during a selected period.
+
+Percentage Price Change
+
+Percentage price change is calculated as:
+
+((Ending Price - Starting Price) / Starting Price) * 100
+
+A positive percentage indicates an increase in price.
+A negative percentage indicates a decrease.
+
+Highest Price
+
+The highest price represents the maximum trading high
+observed during the selected period.
+
+Lowest Price
+
+The lowest price represents the minimum trading low
+observed during the selected period.
+
+Average Price
+
+Average price can be calculated using the mean of the
+closing prices during the selected period.
+
+Historical performance does not guarantee future returns.
