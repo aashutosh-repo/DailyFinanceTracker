@@ -1,9 +1,11 @@
 import requests
 
 from langchain_core.tools import tool
+import os
 
 
-SPRING_BOOT_URL = "http://localhost:8080"
+SPRING_BOOT_URL = os.getenv("SPRING_BOOT_URL","http://localhost:8080")
+HTTP_TIMEOUT_SECONDS = float(os.getenv("SPRING_BOOT_TIMEOUT_SECONDS", 20))
 
 
 @tool
@@ -28,7 +30,7 @@ def get_stock_prices(
             "from": from_date,
             "to": to_date
         },
-        timeout=10
+        timeout=HTTP_TIMEOUT_SECONDS
     )
 
     response.raise_for_status()
@@ -53,7 +55,7 @@ def get_company_info(
 
     response = requests.get(
         url,
-        timeout=10
+        timeout=HTTP_TIMEOUT_SECONDS
     )
 
     response.raise_for_status()
@@ -85,7 +87,7 @@ def get_stock_statistics(
             "from": from_date,
             "to": to_date
         },
-        timeout=10
+        timeout=HTTP_TIMEOUT_SECONDS
     )
 
     response.raise_for_status()

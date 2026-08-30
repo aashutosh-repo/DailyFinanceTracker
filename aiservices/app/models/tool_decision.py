@@ -1,8 +1,15 @@
-from typing import Optional, List
+from typing import Optional, Dict, Any, List
 
 from pydantic import BaseModel, Field
 
-from app.models.tool_call import ToolCall
+
+class ToolCall(BaseModel):
+
+    tool_name: str
+
+    arguments: Dict[str, Any] = Field(
+        default_factory=dict
+    )
 
 
 class ToolDecision(BaseModel):
