@@ -55,6 +55,7 @@ def search_stock_knowledge(
     raw_results = search_knowledge(
         question=question,
         company=company,
+        k=10,
         search_type=strategy.value
     )
 
@@ -109,7 +110,7 @@ def search_stock_knowledge(
 
     compressed_results = compress_documents(
         relevant_results,
-        max_chars=1200
+        max_chars=4800
     )
 
 

@@ -1,7 +1,8 @@
 from app.tools.stock_tools import (
     get_stock_prices,
     get_company_info,
-    get_stock_statistics
+    get_stock_statistics,
+    get_technical_analysis
 )
 
 from app.tools.rag_tools import (
@@ -19,6 +20,9 @@ TOOLS = {
 
     "get_stock_statistics":
         get_stock_statistics,
+
+    "get_technical_analysis":
+        get_technical_analysis,
 
     "search_stock_knowledge":
         search_stock_knowledge

@@ -42,7 +42,7 @@ def choose_retrieval_strategy(
 
         if keyword in question_lower:
 
-            return RetrievalStrategy.MMR
+            return RetrievalStrategy.HYBRID
 
 
     # =====================================

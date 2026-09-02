@@ -3,6 +3,7 @@ import requests
 from langchain_core.tools import tool
 import os
 
+from psycopg.conninfo import timeout_from_conninfo
 
 SPRING_BOOT_URL = os.getenv("SPRING_BOOT_URL","http://localhost:8080")
 HTTP_TIMEOUT_SECONDS = float(os.getenv("SPRING_BOOT_TIMEOUT_SECONDS", 20))
@@ -92,4 +93,33 @@ def get_stock_statistics(
 
     response.raise_for_status()
 
+    return response.json()
+
+@tool
+def get_technical_analysis(
+        symbol: str,
+        from_date: str,
+        to_date: str,
+        period: int=14
+) -> dict:
+    """
+    Get deterministic technical analysis indicators for a company.
+    return structured SMA, EMA, RSI, ATR, volume Trends, Bollinger Bands,
+    MACD when enough price history exists, and 52 weeks high/low values.
+    These are calculated by Spring Boot code, not by the LLM.
+    """
+    url = (
+        f"(SPRING_BOOT_URL)"
+        f"(/api/v1/stocks/{symbol}/technical)"
+    )
+    response = requests.get(
+        url,
+        params={
+            "form": from_date,
+            "to": to_date,
+            "period": period
+        },
+        timeout=HTTP_TIMEOUT_SECONDS
+    )
+    response.raise_for_status()
     return response.json()
