@@ -28,7 +28,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class StockAnalysisService {
     private final CompanyRepository companyRepository;
-    private MarketPriceRepository marketPriceRepository;
+    private final MarketPriceRepository marketPriceRepository;
     private final FundamentalsService fundamentalsService;
 
     public TechnicalAnalysisResponse getTechnicalAnalysis(String symbol, LocalDate fromDate, LocalDate toDate, int period) {
