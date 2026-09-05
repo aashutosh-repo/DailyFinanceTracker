@@ -1,0 +1,130 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-financial-statement
+      author: you
+
+      preConditions:
+        onFail: MARK_RAN
+        onError: HALT
+        not:
+          - tableExists:
+              tableName: financial_statement
+
+      changes:
+        - createTable:
+            tableName: financial_statement
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: company_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: fiscal_year
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: fiscal_quarter
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: report_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: revenue
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: operating_income
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: ebit
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: interest_expense
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: taxes
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: net_income
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: operating_cash_flow
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: capital_expenditures
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: free_cash_flow
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: total_assets
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: total_liabilities
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: total_equity
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: total_debt
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: cash
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: working_capital
+                  type: NUMERIC(18,2)
+
+              - column:
+                  name: source
+                  type: VARCHAR(50)
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+        - addForeignKeyConstraint:
+            baseTableName: financial_statement
+            baseColumnNames: company_id
+            referencedTableName: company
+            referencedColumnNames: id
+            constraintName: fk_financial_statement_company
+
+        - addUniqueConstraint:
+            tableName: financial_statement
+            columnNames: company_id, fiscal_year, fiscal_quarter
+            constraintName: uk_financial_statement_company_period

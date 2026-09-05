@@ -19,3 +19,5 @@ databaseChangeLog:
       sqlFile:
         path: database/changelog/003-sample-data.sql
         relativeToChangelogFile: false
+  - include:
+      file: database/changelog/004-add-financial-statement-table.yaml
