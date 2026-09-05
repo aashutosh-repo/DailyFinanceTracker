@@ -25,9 +25,10 @@ public class StockSyncJobController {
         return syncJobService.getJob(jobId);
     }
 
-    @GetMapping("/sync-jobs")
-    public SyncJobPageResponse getSyncJobs(@RequestParam(required = false) String symbol,
-                                           @RequestParam(required = false) SyncJobStatus status,
+    @GetMapping
+    public SyncJobPageResponse getSyncJobs(
+            @RequestParam(required = false) String symbol,
+            @RequestParam(required = false) SyncJobStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "startedAt,desc") String sort
