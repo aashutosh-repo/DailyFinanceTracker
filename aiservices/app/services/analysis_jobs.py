@@ -22,7 +22,7 @@ class AnalysisJob:
 __jobs: dict[str, AnalysisJob] = {}
 __jobs_lock = Lock()  # Placeholder for a threading.Lock() or asyncio.Lock() if needed
 __job_queue: Queue[str] = Queue()  # Placeholder for a queue to manage job processing
-worker_started = False  # Flag to indicate if the worker has started
+_worker_started = False  # Flag to indicate if the worker has started
 worker_lock = Lock()  # Lock to ensure only one worker is started
 
 def submit_analyze_job(question: str) -> dict[str, Any]:

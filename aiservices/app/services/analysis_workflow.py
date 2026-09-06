@@ -57,13 +57,13 @@ def run_analysis_workflow(question: str) -> dict[str, Any]:
                                        "direct_response": "direct_response",
                                        "execute_tools": "execute_tools"
                                    })
-    workflow.add_edge("direct_response", "generate_answer")
+    workflow.add_edge("direct_response", "validate_grounding")
     workflow.add_edge("execute_tools", "generate_answer")
     workflow.add_edge("generate_answer", "validate_grounding")
-    workflow.add_edge("validate_grounding", "generate_answer", END)
+    workflow.add_edge("validate_grounding", END)
 
     compile_workflow = workflow.compile()
-    final_state = compile_workflow(initial_state)
+    final_state = compile_workflow.invoke(initial_state)
     return _to_response(final_state)
 
 def _run_sequential_workflow(state: AnalysisState) -> dict[str, Any]:
@@ -73,13 +73,12 @@ def _run_sequential_workflow(state: AnalysisState) -> dict[str, Any]:
     else:
         state = _execute_tools(state)
         state = _generate_answer(state)
-    state = _generate_answer(state)
     state = _validate_grounding(state)
     return _to_response(state)
 
 def _plan_tools(state: AnalysisState) -> AnalysisState:
     decision_message = [
-        SystemMessage(content=_planning_prompt),
+        SystemMessage(content=_planning_prompt()),
         HumanMessage(content=state["question"])
     ]
 
@@ -151,7 +150,7 @@ def _generate_answer(state: AnalysisState) -> AnalysisState:
         }
 
    final_message = [
-        SystemMessage(content=_answer_prompt),
+       SystemMessage(content=_answer_prompt(state.get("sources", []))),
         HumanMessage(content = f"""
 User Question: {state["question"]}
 Tool Results: {state["tool_results"]}
@@ -185,8 +184,8 @@ def _validate_grounding(state: AnalysisState) -> AnalysisState:
         issues.append(f"{len(unavailable_results)} one or more tools returned found=false, indicating that the requested information is not available in the current knowledge base.")
 
     sources = state.get("sources", [])
-    if sources and "sources" in response.lower():
-        response = f"{response.rsplit()}\n\nSources: {', '.join(sources)}"
+    if sources and "sources" not in response.lower():
+        response = f"{response}\n\nSources: {', '.join(sources)}"
 
     return {
         **state,
@@ -214,7 +213,12 @@ def _extract_sources(tool_results: list[dict[str, Any]]) -> list[str]:
         if isinstance(payload, dict) and payload.get("found") is False:
             continue
 
+        if not isinstance(payload, dict):
+            continue
+
         for item in payload.get("results", []):
+            if not isinstance(item, dict):
+                continue
             source = item.get("source")
             if source and source not in sources:
                 sources.append(source)
@@ -224,10 +228,10 @@ def _extract_sources(tool_results: list[dict[str, Any]]) -> list[str]:
 def _to_response(state: AnalysisState) -> dict[str, Any]:
     return {
         "response": state.get("response"),
-        "tools_used": state.get("tools_used", []),
-        "tools_results": state.get("tools_results", []),
+        "tools_used": state.get("tool_used", []),
+        "tools_results": state.get("tool_results", []),
         "grounded": state.get("grounded", True),
-        "grounding_issues": state.get("grounding_issues", []),
+        "grounding_issues": state.get("grounding_issue", []),
         "sources": state.get("sources", [])
     }
 
@@ -238,6 +242,8 @@ def _planning_prompt() -> str:
 You are a Stock AI assistant.
 
 Today's Date is {today}
+
+Use get_current_quote for questions about the latest or current price, and use historical prices/statistics or technical analysis for past periods. Use company information and knowledge search for business or service questions. Do not calculate prices or indicators yourself; explain values returned by tools.
 
 
 
@@ -250,6 +256,8 @@ def _answer_prompt(sources: list[str]) -> str:
     if sources: 
         source_rule = f"\n- End with this Exact source list: Sources: {', '.join(sources)}"
 
-        return f"""
-
+    return f"""
+You are a financial research assistant. Answer the user's question using only the supplied tool results.
+Be precise, explain important assumptions, and clearly distinguish retrieved facts from uncertainty.
+{source_rule}
 """

@@ -10,6 +10,17 @@ HTTP_TIMEOUT_SECONDS = float(os.getenv("SPRING_BOOT_TIMEOUT_SECONDS", 20))
 
 
 @tool
+def get_current_quote(symbol: str) -> dict:
+    """Get the latest available market quote for a company."""
+    response = requests.get(
+        f"{SPRING_BOOT_URL}/api/stocks/{symbol}/quote",
+        timeout=HTTP_TIMEOUT_SECONDS
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+@tool
 def get_stock_prices(
         symbol: str,
         from_date: str,
