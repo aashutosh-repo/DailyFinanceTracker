@@ -3,13 +3,21 @@ from pydantic import BaseModel
 
 from app.services.analysis_jobs import get_analysis_job, submit_analyze_job
 from app.services.assistant import ask_assistant
-
-
+from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Stock AI Assistant"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins =[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+)
 
 class ChatRequest(BaseModel):
 
