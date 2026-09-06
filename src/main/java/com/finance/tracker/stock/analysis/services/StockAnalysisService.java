@@ -45,6 +45,13 @@ public class StockAnalysisService {
         List<PricePoint> pricePoints = marketPriceList.stream().map(this::toPricePoint).toList();
         List<BigDecimal> closes = pricePoints.stream().map(PricePoint::close).toList();
 
+        if (closes.size() < period) {
+            throw new IllegalArgumentException(
+                    "Not enough market data for technical analysis. Requested period=" + period
+                            + ", available closes=" + closes.size() + " for symbol " + symbol
+            );
+        }
+
         List<TechnicalIndicatorResponse> indicators = new ArrayList<>();
 
         if (closes.size() >= period) {
@@ -66,6 +73,19 @@ public class StockAnalysisService {
 
         MacdResonse macd = closes.size() >= 35 ? toResponse(TechnicalAnalysisCalculator.macd(closes))  : null;
         BollingerBandsResponse bollingerBands = closes.size() >= period ? toResponse(TechnicalAnalysisCalculator.bollingerBands(closes,period, BigDecimal.valueOf(2))) : null;
+        BigDecimal currentPrice = closes.getLast();
+        BigDecimal dailyReturn = closes.size() >= 2 ? percentage(closes.get(closes.size() - 2), currentPrice) : null;
+        BigDecimal periodReturn = percentage(closes.getFirst(), currentPrice);
+        BigDecimal sma20 = simpleMovingAverage(closes, 20);
+        BigDecimal sma50 = simpleMovingAverage(closes, 50);
+        BigDecimal sma200 = simpleMovingAverage(closes, 200);
+        BigDecimal rsi14 = closes.size() >= 15 ? TechnicalAnalysisCalculator.rsi(closes, 14).value() : null;
+        BigDecimal volatility = annualizedVolatility(closes);
+        BigDecimal volumeTrend = pricePoints.size() >= 28
+            ? TechnicalAnalysisCalculator.volumeTrends(pricePoints, 14).value() : null;
+        String trend = sma20 == null ? "UNAVAILABLE"
+            : currentPrice.compareTo(sma20) > 0 ? "BULLISH"
+            : currentPrice.compareTo(sma20) < 0 ? "BEARISH" : "NEUTRAL";
 
         return new TechnicalAnalysisResponse(
                 company.getSymbol(),
@@ -76,7 +96,17 @@ public class StockAnalysisService {
                 macd,
                 bollingerBands,
                 TechnicalAnalysisCalculator.fiftyTwoWeekHigh(pricePoints),
-                TechnicalAnalysisCalculator.fiftyTwoWeekLow(pricePoints)
+                TechnicalAnalysisCalculator.fiftyTwoWeekLow(pricePoints),
+                currentPrice,
+                dailyReturn,
+                periodReturn,
+                sma20,
+                sma50,
+                sma200,
+                rsi14,
+                volatility,
+                volumeTrend,
+                trend
         );
     }
 
@@ -219,6 +249,37 @@ public class StockAnalysisService {
                 marketPrice.getClosePrice(),
                 marketPrice.getVolume() == null ? 0L : marketPrice.getVolume()
         );
+    }
+
+    private BigDecimal simpleMovingAverage(List<BigDecimal> closes, int period) {
+        return closes.size() >= period ? TechnicalAnalysisCalculator.sma(closes, period).value() : null;
+    }
+
+    private BigDecimal percentage(BigDecimal start, BigDecimal end) {
+        if (start == null || start.compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+        return end.subtract(start).divide(start, 4, RoundingMode.HALF_UP)
+                .movePointRight(2).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal annualizedVolatility(List<BigDecimal> closes) {
+        if (closes.size() < 3) {
+            return null;
+        }
+        List<BigDecimal> returns = new ArrayList<>();
+        for (int index = 1; index < closes.size(); index++) {
+            returns.add(closes.get(index).subtract(closes.get(index - 1))
+                    .divide(closes.get(index - 1), 8, RoundingMode.HALF_UP));
+        }
+        BigDecimal mean = returns.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(returns.size()), 8, RoundingMode.HALF_UP);
+        BigDecimal variance = returns.stream()
+                .map(value -> value.subtract(mean).pow(2))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(returns.size() - 1), 8, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(Math.sqrt(variance.doubleValue() * 252) * 100)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private Company findCompany(String symbol) {

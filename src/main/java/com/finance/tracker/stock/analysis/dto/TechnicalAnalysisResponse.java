@@ -17,6 +17,16 @@ public record TechnicalAnalysisResponse(
         MacdResonse macd,
         BollingerBandsResponse bollingerBands,
         BigDecimal fiftyTwoWeeksHigh,
-        BigDecimal fiftyTwoWeeksLow
+        BigDecimal fiftyTwoWeeksLow,
+        BigDecimal currentPrice,
+        BigDecimal dailyReturn,
+        BigDecimal periodReturn,
+        BigDecimal sma20,
+        BigDecimal sma50,
+        BigDecimal sma200,
+        BigDecimal rsi14,
+        BigDecimal volatility,
+        BigDecimal volumeTrend,
+        String trend
 ) {
 }

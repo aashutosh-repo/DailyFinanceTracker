@@ -130,7 +130,7 @@ public final class TechnicalAnalysisCalculator {
     }
 
    public static BigDecimal fiftyTwoWeekLow(List<PricePoint> prices) {
-        return prices.stream().map(PricePoint::low).max(BigDecimal::compareTo).orElseThrow();
+        return prices.stream().map(PricePoint::low).min(BigDecimal::compareTo).orElseThrow();
     }
 
     private static BigDecimal averageVolume(List<PricePoint> prices) {
@@ -139,8 +139,10 @@ public final class TechnicalAnalysisCalculator {
     }
 
     private static void validatePricePeriod(List<PricePoint> values, int period) {
-        if (period <=0 || values == null || values.size() < period) {
-            throw new IllegalArgumentException("Not Enough price points for period");
+        if (period <= 0 || values == null || values.isEmpty() || values.size() < period) {
+            throw new IllegalArgumentException(
+                    "Not enough price points for period=" + period + ", available=" + (values == null ? 0 : values.size())
+            );
         }
     }
 
@@ -149,8 +151,10 @@ public final class TechnicalAnalysisCalculator {
     }
 
     private static void validatePeriod(List<BigDecimal> values, int period) {
-        if (period <= 0 || values == null || values.size() < period) {
-            throw new IllegalArgumentException("Not Enough value for period");
+        if (period <= 0 || values == null || values.isEmpty() || values.size() < period) {
+            throw new IllegalArgumentException(
+                    "Not enough values for period=" + period + ", available=" + (values == null ? 0 : values.size())
+            );
         }
     }
 }

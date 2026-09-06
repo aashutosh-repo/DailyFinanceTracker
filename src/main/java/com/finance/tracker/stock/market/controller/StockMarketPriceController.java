@@ -4,8 +4,10 @@ import com.finance.tracker.stock.market.dto.StockStatisticsResponse;
 import com.finance.tracker.stock.market.service.MarketPriceService;
 import com.finance.tracker.stock.market.dto.AsyncMarketSyncResponse;
 import com.finance.tracker.stock.market.dto.MarketPriceResponse;
+import com.finance.tracker.stock.market.dto.MarketQuoteResponse;
 import com.finance.tracker.stock.market.dto.MarketSyncJobResponse;
 import com.finance.tracker.stock.market.service.StockStatisticsService;
+import com.finance.tracker.stock.market.service.MarketQuoteService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,12 @@ public class StockMarketPriceController {
 
     private final MarketPriceService marketPriceService;
     private final StockStatisticsService stockStatisticsService;
+    private final MarketQuoteService marketQuoteService;
+
+    @GetMapping("/{symbol}/quote")
+    public MarketQuoteResponse getCurrentQuote(@PathVariable String symbol) {
+        return marketQuoteService.getCurrentQuote(symbol);
+    }
 
 
     @PostMapping("/{symbol}/prices/sync")
