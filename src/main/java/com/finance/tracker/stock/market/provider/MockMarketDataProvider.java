@@ -1,11 +1,13 @@
 package com.finance.tracker.stock.market.provider;
 
 import com.finance.tracker.stock.market.dto.MarketData;
+import com.finance.tracker.stock.market.dto.MarketQuoteData;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -60,6 +62,25 @@ public class MockMarketDataProvider
 
         return prices;
     }
+
+        @Override
+        public MarketQuoteData getCurrentQuote(String symbol) {
+        int seed = Math.floorMod(symbol.toUpperCase().hashCode(), 500);
+        BigDecimal price = BigDecimal.valueOf(3000L + seed).setScale(2);
+        BigDecimal change = BigDecimal.valueOf((seed % 41) - 20).movePointLeft(1).setScale(2);
+        BigDecimal previousClose = price.subtract(change);
+        BigDecimal changePercent = change
+            .divide(previousClose, 4, java.math.RoundingMode.HALF_UP)
+            .movePointRight(2)
+            .setScale(2, java.math.RoundingMode.HALF_UP);
+        BigDecimal open = previousClose.add(BigDecimal.valueOf(4)).setScale(2);
+        BigDecimal high = price.max(open).add(BigDecimal.valueOf(12)).setScale(2);
+        BigDecimal low = price.min(open).subtract(BigDecimal.valueOf(12)).setScale(2);
+
+        return new MarketQuoteData(
+            price, change, changePercent, open, high, low,
+            1_000_000L + seed * 1_000L, LocalDateTime.now(), getProviderName());
+        }
 
 
     @Override

@@ -2,6 +2,10 @@
 server:
   port: ${PORT:8080}
 
+ai:
+  service:
+    url: ${AI_SERVICE_URL:http://localhost:8000}
+
 spring:
   application:
     name: Finance-Tracking
