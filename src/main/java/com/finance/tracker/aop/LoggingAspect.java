@@ -4,13 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Aspect
 @Component
 @Slf4j
 public class LoggingAspect {
 
+    private static final String REQUEST_ID = "requestId";
     private static final long SLOW_METHOD_THRESHOLD_MS = 1000;
 
     /**
@@ -40,11 +44,8 @@ public class LoggingAspect {
         String method = className + "." + methodName + "()";
 
         long startTime = System.currentTimeMillis();
-
         log.debug("START {}", method);
-
         try {
-
             Object result = joinPoint.proceed();
             long duration = System.currentTimeMillis() - startTime;
             if (duration >= SLOW_METHOD_THRESHOLD_MS) {
@@ -52,12 +53,21 @@ public class LoggingAspect {
             } else {
                 log.debug("END {} duration={}ms", method, duration);
             }
-
             return result;
         } catch (Throwable ex) {
             long duration = System.currentTimeMillis() - startTime;
             log.error("FAILED {} duration={}ms exception={} message={}", method, duration, ex.getClass().getSimpleName(), ex.getMessage());
             throw ex;
         }
+    }
+
+    private String getOrCreateRequestId() {
+
+        String requestId = MDC.get(REQUEST_ID);
+        if (requestId == null || requestId.isBlank()) {
+            requestId = UUID.randomUUID().toString();
+            MDC.put(REQUEST_ID, requestId);
+        }
+        return requestId;
     }
 }
