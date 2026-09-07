@@ -39,6 +39,7 @@ public class SecurityConfig {
                                 // Swagger/OpenAPI URLs
                                 .requestMatchers(
                                         "/api/v1/auth/register",
+                                        "/api/payments/providers/payu/callback",
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
