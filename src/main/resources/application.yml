@@ -42,6 +42,21 @@ spring:
         dimensions: 1024
         index-type: hnsw
         distance-type: cosine_distance
+
+  payment:
+    orders:
+      demo-order-id: ${PAYMENT_DEMO_ORDER_ID:ORD-10001}
+      demo-amount: ${PAYMENT_DEMO_AMOUNT:1768.82}
+    providers:
+      payu:
+        enabled: ${PAYU_TEST_ENABLED:false}
+        mode: test
+        key: ${PAYU_TEST_KEY:}
+        salt: ${PAYU_TEST_SALT:}
+        base-url: ${PAYU_TEST_BASE_URL:https://test.payu.in/_payment}
+        success-url: ${PAYU_TEST_SUCCESS_URL:http://localhost:8080/api/payments/providers/payu/callback}
+        failure-url: ${PAYU_TEST_FAILURE_URL:http://localhost:8080/api/payments/providers/payu/callback}
+
 jwt:
   secret: "mySuperSecureSecretKeyForJwtTokenGeneration123!"
   expiration-ms: 86400000 # 1 day in milliseconds
