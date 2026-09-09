@@ -84,7 +84,14 @@ Terminal states cannot transition back to a pending or processing state.
 
 ## Idempotency
 
-`idempotencyKey` is resolved before a provider call. A repeated key returns the existing payment and does not create another provider transaction. The current in-memory map is a local implementation; production deployment must use a unique database constraint or a distributed idempotency store.
+`idempotencyKey` is resolved before a provider call. A repeated key returns the existing payment and does not create another provider transaction. Production Spring profiles use the JPA payment repository with a unique database constraint on `idempotency_key`; the map-backed repository remains only for explicit test profiles.
+
+Payment persistence uses two tables:
+
+- `payments`: the current provider-independent payment snapshot and status.
+- `payment_transaction_events`: append-only request, provider initiation, and callback/status events.
+
+Only safe metadata is stored in event details. Card numbers, CVV, UPI PINs, PayU salt, and raw provider payloads are never persisted.
 
 ## Amount validation
 
