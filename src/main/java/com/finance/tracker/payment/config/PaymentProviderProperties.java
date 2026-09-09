@@ -13,6 +13,7 @@ public class PaymentProviderProperties {
     private String baseUrl;
     private String successUrl;
     private String failureUrl;
+    private String frontendReturnUrl;
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -28,4 +29,6 @@ public class PaymentProviderProperties {
     public void setSuccessUrl(String successUrl) { this.successUrl = successUrl; }
     public String getFailureUrl() { return failureUrl; }
     public void setFailureUrl(String failureUrl) { this.failureUrl = failureUrl; }
+    public String getFrontendReturnUrl() { return frontendReturnUrl; }
+    public void setFrontendReturnUrl(String frontendReturnUrl) { this.frontendReturnUrl = frontendReturnUrl; }
 }
