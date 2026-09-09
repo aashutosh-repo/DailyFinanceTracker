@@ -79,6 +79,13 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration payuCallbackConfig = new CorsConfiguration();
+        payuCallbackConfig.setAllowedOriginPatterns(List.of("*"));
+        payuCallbackConfig.setAllowedMethods(List.of("POST", "OPTIONS"));
+        payuCallbackConfig.setAllowedHeaders(List.of("Content-Type", "Origin", "Accept"));
+        payuCallbackConfig.setAllowCredentials(false);
+        payuCallbackConfig.setMaxAge(3600L);
+        source.registerCorsConfiguration("/api/payments/providers/payu/callback", payuCallbackConfig);
         source.registerCorsConfiguration("/**", config);
         return source;
     }
