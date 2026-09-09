@@ -14,11 +14,11 @@ import com.finance.tracker.payment.exception.PaymentNotFoundException;
 import com.finance.tracker.payment.notification.DummyPaymentNotificationService;
 import com.finance.tracker.payment.provider.DummyPaymentProvider;
 import com.finance.tracker.payment.provider.PaymentInitiationResult;
-import com.finance.tracker.payment.provider.PaymentProcessingResult;
 import com.finance.tracker.payment.provider.PaymentProvider;
-import com.finance.tracker.payment.repository.InMemoryPaymentRepository;
+import com.finance.tracker.payment.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,13 +26,13 @@ import java.util.UUID;
 
 @Service
 public class PaymentService {
-    private final InMemoryPaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
     private final PaymentProviderResolver paymentProviderResolver;
     private final DummyPaymentNotificationService paymentNotificationService;
     private final OrderAmountResolver orderAmountResolver;
 
     @Autowired
-    public PaymentService(InMemoryPaymentRepository paymentRepository,
+    public PaymentService(PaymentRepository paymentRepository,
                           PaymentProviderResolver paymentProviderResolver,
                           DummyPaymentNotificationService paymentNotificationService,
                           OrderAmountResolver orderAmountResolver) {
@@ -42,13 +42,13 @@ public class PaymentService {
         this.orderAmountResolver = orderAmountResolver;
     }
 
-    public PaymentService(InMemoryPaymentRepository paymentRepository,
+    public PaymentService(PaymentRepository paymentRepository,
                           PaymentProviderResolver paymentProviderResolver,
                           DummyPaymentNotificationService paymentNotificationService) {
         this(paymentRepository, paymentProviderResolver, paymentNotificationService, null);
     }
 
-    public PaymentService(InMemoryPaymentRepository paymentRepository, DummyPaymentProvider dummyPaymentProvider) {
+    public PaymentService(PaymentRepository paymentRepository, DummyPaymentProvider dummyPaymentProvider) {
         this(paymentRepository,
                 new PaymentProviderResolver(java.util.List.of(dummyPaymentProvider)),
                 new DummyPaymentNotificationService());
@@ -91,6 +91,12 @@ public class PaymentService {
         payment.setCustomerId("customer-demo");
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
+        paymentRepository.save(payment);
+        paymentRepository.recordEvent(payment.getPaymentId(), "PAYMENT_REQUEST_CREATED", payment.getStatus(),
+            requestedProvider, null, null, "Payment request accepted", java.util.Map.of(
+                "orderId", payment.getOrderId(),
+                "paymentMethod", payment.getPaymentMethod().name(),
+                "currency", payment.getCurrency()));
 
         PaymentInitiationResult initiationResult = paymentProvider.initiatePayment(payment);
         if (initiationResult.status() == PaymentStatus.SUCCESS || initiationResult.status() == PaymentStatus.FAILED) {
@@ -101,6 +107,9 @@ public class PaymentService {
         }
         payment.setProviderPaymentId(initiationResult.providerPaymentId());
         paymentRepository.save(payment);
+        paymentRepository.recordEvent(payment.getPaymentId(), "PROVIDER_INITIATION_RESPONSE", payment.getStatus(),
+            requestedProvider, initiationResult.providerPaymentId(), null, initiationResult.message(),
+            java.util.Map.of("hasCheckoutRedirect", String.valueOf(initiationResult.checkoutUrl() != null)));
 
         if (initiationResult.status() == PaymentStatus.SUCCESS || initiationResult.status() == PaymentStatus.FAILED) {
             return PaymentResponse.fromEntity(payment, initiationResult.message(), initiationResult.checkoutUrl(), initiationResult.checkoutFields());
@@ -190,11 +199,14 @@ public class PaymentService {
         return PaymentResponse.fromEntity(payment, "Payment status checked successfully");
     }
 
+    @Transactional
     public PaymentResponse handleProviderCallback(Provider provider,
                                                    String providerPaymentId,
                                                    PaymentStatus nextStatus,
                                                    BigDecimal amount,
-                                                   String currency) {
+                                                   String currency,
+                                                   String responseCode,
+                                                   String responseMessage) {
         Payment payment = paymentRepository.findByProviderPaymentId(providerPaymentId);
         if (payment == null || payment.getProvider() != provider) {
             throw new InvalidPaymentRequestException("Unknown provider payment reference");
@@ -206,10 +218,16 @@ public class PaymentService {
             throw new InvalidPaymentRequestException("Payment currency does not match the provider callback");
         }
 
-        if (payment.getStatus() != nextStatus) {
+        boolean duplicateCallback = payment.getStatus() == nextStatus;
+        if (!duplicateCallback) {
             payment.transitionTo(nextStatus);
             paymentRepository.save(payment);
         }
+        paymentRepository.recordEvent(payment.getPaymentId(), "PROVIDER_CALLBACK_RECEIVED", payment.getStatus(),
+            provider, providerPaymentId, responseCode, responseMessage, java.util.Map.of(
+                "currency", currency,
+                "status", nextStatus.name(),
+                        "duplicate", String.valueOf(duplicateCallback)));
         return PaymentResponse.fromEntity(payment, "Provider callback reconciled");
     }
 

@@ -2,13 +2,17 @@ package com.finance.tracker.payment.repository;
 
 import com.finance.tracker.payment.entity.Payment;
 import com.finance.tracker.payment.entity.PaymentSession;
+import com.finance.tracker.payment.enums.PaymentStatus;
+import com.finance.tracker.payment.enums.Provider;
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
-public class InMemoryPaymentRepository {
+@Profile("test")
+public class InMemoryPaymentRepository implements PaymentRepository {
     private final Map<String, Payment> paymentsById = new ConcurrentHashMap<>();
     private final Map<String, String> idemKeyToPaymentId = new ConcurrentHashMap<>();
     private final Map<String, PaymentSession> sessionsByPaymentId = new ConcurrentHashMap<>();
@@ -57,5 +61,12 @@ public class InMemoryPaymentRepository {
 
     public PaymentSession findSessionById(String sessionId) {
         return sessionsBySessionId.get(sessionId);
+    }
+
+    @Override
+    public void recordEvent(String paymentId, String eventType, PaymentStatus status, Provider provider,
+                            String providerPaymentId, String responseCode, String responseMessage,
+                            Map<String, String> safeDetails) {
+        // The durable JPA adapter persists the audit event. Local tests need no event store.
     }
 }

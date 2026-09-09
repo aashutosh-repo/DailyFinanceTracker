@@ -28,16 +28,16 @@ public class PayUHashService {
 
     public boolean verifyResponseHash(Map<String, String> fields, String salt) {
         String prefix = fields.getOrDefault("additionalCharges", "");
-        String reverse = String.join("|",
-            prefix.isBlank() ? salt : prefix + "|" + salt,
-                value(fields, "status"),
-                "", "", "", "", "", "", "", "", "",
-                value(fields, "email"),
-                value(fields, "firstname"),
-                value(fields, "productinfo"),
-                value(fields, "amount"),
-                value(fields, "txnid"),
-                value(fields, "key"));
+        String reversePrefix = prefix.isBlank() ? salt : prefix + "|" + salt;
+        String reverse = reversePrefix
+                + "|" + value(fields, "status")
+                + "|||||||||||"
+                + value(fields, "email")
+                + "|" + value(fields, "firstname")
+                + "|" + value(fields, "productinfo")
+                + "|" + value(fields, "amount")
+                + "|" + value(fields, "txnid")
+                + "|" + value(fields, "key");
         String expected = sha512(reverse);
         return expected.equalsIgnoreCase(value(fields, "hash"));
     }

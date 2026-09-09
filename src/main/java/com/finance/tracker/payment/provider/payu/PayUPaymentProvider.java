@@ -63,8 +63,6 @@ public class PayUPaymentProvider implements PaymentProvider {
     public boolean isAvailable() {
         return properties.isEnabled()
                 && "test".equalsIgnoreCase(properties.getMode())
-                && !isBlank(properties.getKey())
-                && !isBlank(properties.getSalt())
                 && !isBlank(properties.getBaseUrl())
                 && !isBlank(properties.getSuccessUrl())
                 && !isBlank(properties.getFailureUrl());
