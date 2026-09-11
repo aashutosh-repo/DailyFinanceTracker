@@ -36,7 +36,7 @@ public class PaymentRecordEntity {
     private String currency;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 32)
+    @Column(name = "payment_method", length = 32)
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)

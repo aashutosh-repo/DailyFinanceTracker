@@ -22,7 +22,6 @@ public class CreatePaymentRequest {
     @Size(min = 3, max = 3, message = "Currency must be a 3-letter ISO code")
     private String currency;
 
-    @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
 
     private Provider provider;

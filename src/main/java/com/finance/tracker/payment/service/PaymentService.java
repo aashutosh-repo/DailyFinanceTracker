@@ -84,7 +84,7 @@ public class PaymentService {
             }
         }
         PaymentProvider paymentProvider = paymentProviderResolver.resolve(requestedProvider);
-        if (!paymentProvider.supportedMethods().contains(request.getPaymentMethod())) {
+        if (request.getPaymentMethod() != null && !paymentProvider.supportedMethods().contains(request.getPaymentMethod())) {
             throw new InvalidPaymentRequestException("Payment method is not supported by " + requestedProvider);
         }
         payment.setProvider(requestedProvider);
@@ -95,7 +95,7 @@ public class PaymentService {
         paymentRepository.recordEvent(payment.getPaymentId(), "PAYMENT_REQUEST_CREATED", payment.getStatus(),
             requestedProvider, null, null, "Payment request accepted", java.util.Map.of(
                 "orderId", payment.getOrderId(),
-                "paymentMethod", payment.getPaymentMethod().name(),
+                "paymentMethod", payment.getPaymentMethod() == null ? "PROVIDER_SELECTED" : payment.getPaymentMethod().name(),
                 "currency", payment.getCurrency()));
 
         PaymentInitiationResult initiationResult = paymentProvider.initiatePayment(payment);
@@ -244,13 +244,10 @@ public class PaymentService {
         if (request.getCurrency() == null || request.getCurrency().isBlank()) {
             throw new InvalidPaymentRequestException("Currency is required");
         }
-        if (request.getPaymentMethod() == null) {
-            throw new InvalidPaymentRequestException("Payment method is required");
-        }
         if (request.getIdempotencyKey() == null || request.getIdempotencyKey().isBlank()) {
             throw new InvalidPaymentRequestException("Idempotency key is required");
         }
-        if (!isSupportedPaymentMethod(request.getPaymentMethod())) {
+        if (request.getPaymentMethod() != null && !isSupportedPaymentMethod(request.getPaymentMethod())) {
             throw new InvalidPaymentRequestException("Unsupported payment method: " + request.getPaymentMethod());
         }
     }

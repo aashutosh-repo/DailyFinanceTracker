@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS payments (
     customer_id VARCHAR(100),
     amount NUMERIC(18,2) NOT NULL,
     currency VARCHAR(3) NOT NULL,
-    payment_method VARCHAR(32) NOT NULL,
+    payment_method VARCHAR(32),
     status VARCHAR(32) NOT NULL,
     provider VARCHAR(32),
     provider_payment_id VARCHAR(128),
@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);
+ALTER TABLE payments ALTER COLUMN payment_method DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_payments_provider_payment_id ON payments(provider_payment_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 
