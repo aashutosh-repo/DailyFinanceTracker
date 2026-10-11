@@ -92,13 +92,29 @@ def _update_job(job_id: str, **updates: Any) -> AnalysisJob | None:
         return job
 
 def __job_to_dict(job: AnalysisJob) -> dict[str, Any]:
+    analysis = job.response if isinstance(job.response, dict) else {}
     return {
         "job_id": job.job_id,
         "question": job.question,
         "status": job.status,
         "progress": job.progress,
-        "response": job.response,
+        "response": analysis.get("response") or job.error or "",
+        "analysis": job.response,
         "error": job.error,
+        "tools_used": analysis.get("tools_used", []),
+        "tools_results": analysis.get("tools_results", []),
+        "grounded": analysis.get("grounded", False),
+        "grounding_issues": analysis.get("grounding_issues", []),
+        "sources": analysis.get("sources", []),
+        "source": analysis.get("sources", []),
+        "analysis_status": analysis.get("status", "ERROR"),
+        "status_detail": analysis.get("status", "ERROR"),
+        "evidence_sufficient": analysis.get("evidence_sufficient", False),
+        "tools_executed": analysis.get("tools_executed", []),
+        "provider_metadata": analysis.get("provider_metadata", []),
+        "data_quality_limitations": analysis.get("data_quality_limitations", []),
+        "evidence_references": analysis.get("evidence_references", []),
+        "synthetic_data": analysis.get("synthetic_data", False),
         "created_at": job.created_at.isoformat(),
         "updated_at": job.updated_at.isoformat()
     }

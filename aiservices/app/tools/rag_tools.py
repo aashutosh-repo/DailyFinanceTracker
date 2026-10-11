@@ -1,20 +1,23 @@
 from langchain_core.tools import tool
 
-from app.rag.search_service import (
-    search_knowledge
-)
-from app.rag.context_compressor import (
-    compress_documents
-)
-
-
-from app.rag.retrieval_strategy import (
-    choose_retrieval_strategy
-)
-
-from app.rag.relevance_filter import (
-    filter_relevant_results
-)
+try:
+    from app.rag.search_service import (
+        search_knowledge
+    )
+    from app.rag.context_compressor import (
+        compress_documents
+    )
+    from app.rag.retrieval_strategy import (
+        choose_retrieval_strategy
+    )
+    from app.rag.relevance_filter import (
+        filter_relevant_results
+    )
+except ModuleNotFoundError:  # pragma: no cover - optional RAG stack may be absent
+    search_knowledge = None
+    compress_documents = None
+    choose_retrieval_strategy = None
+    filter_relevant_results = None
 
 
 @tool
@@ -26,31 +29,21 @@ def search_stock_knowledge(
     Search the stock knowledge base for
     company and stock-analysis information.
     """
+    if search_knowledge is None or choose_retrieval_strategy is None or compress_documents is None or filter_relevant_results is None:
+        return {
+            "ok": False,
+            "error": {
+                "type": "rag_unavailable",
+                "message": "RAG dependencies are not installed in the current Python environment.",
+            },
+        }
 
     print("\n========== RAG TOOL CALLED ==========")
-
     print(f"Question: {question}")
-
     print(f"Company Filter: {company}")
 
-
-    # =====================================
-    # 1. Choose Retrieval Strategy
-    # =====================================
-
-    strategy = choose_retrieval_strategy(
-        question
-    )
-
-    print(
-        f"Retrieval Strategy: "
-        f"{strategy.value}"
-    )
-
-
-    # =====================================
-    # 2. Retrieve Documents
-    # =====================================
+    strategy = choose_retrieval_strategy(question)
+    print(f"Retrieval Strategy: {strategy.value}")
 
     raw_results = search_knowledge(
         question=question,
@@ -59,102 +52,30 @@ def search_stock_knowledge(
         search_type=strategy.value
     )
 
-    print(
-        f"Raw Results: "
-        f"{len(raw_results)}"
-    )
+    print(f"Raw Results: {len(raw_results)}")
 
-
-    # =====================================
-    # 3. Print Raw Results
-    # =====================================
-
-    for index, (document, score) in enumerate(
-            raw_results,
-            start=1
-    ):
-
+    for index, (document, score) in enumerate(raw_results, start=1):
         print(f"\nRaw Result {index}")
+        print(f"Source: {document.metadata.get('source_file')}")
+        print(f"Score: {score}")
+        print(f"Content: {document.page_content[:200]}")
 
-        print(
-            f"Source: "
-            f"{document.metadata.get('source_file')}"
-        )
+    relevant_results = filter_relevant_results(raw_results)
+    print(f"\nRelevant Results: {len(relevant_results)}")
 
-        print(
-            f"Score: {score}"
-        )
-
-        print(
-            f"Content: "
-            f"{document.page_content[:200]}"
-        )
-
-
-    # =====================================
-    # 4. Filter Relevant Results
-    # =====================================
-
-    relevant_results = filter_relevant_results(
-        raw_results
-    )
-
-    print(
-        f"\nRelevant Results: "
-        f"{len(relevant_results)}"
-    )
-
-    # =====================================
-    # Compress Relevant Context
-    # =====================================
-
-    compressed_results = compress_documents(
-        relevant_results,
-        max_chars=4800
-    )
-
-
-    print(
-        f"Compressed Results: "
-        f"{len(compressed_results)}"
-    )
-
-
-    # =====================================
-    # No Useful Context
-    # =====================================
+    compressed_results = compress_documents(relevant_results, max_chars=4800)
+    print(f"Compressed Results: {len(compressed_results)}")
 
     if not compressed_results:
-
         return {
-
-            "search_type":
-                strategy.value,
-
-            "found":
-                False,
-
-            "message":
-                "No sufficiently relevant information "
-                "was found in the knowledge base.",
-
-            "results":
-                []
+            "search_type": strategy.value,
+            "found": False,
+            "message": "No sufficiently relevant information was found in the knowledge base.",
+            "results": [],
         }
 
-
-    # =====================================
-    # Return Compressed Context
-    # =====================================
-
     return {
-
-        "search_type":
-            strategy.value,
-
-        "found":
-            True,
-
-        "results":
-            compressed_results
+        "search_type": strategy.value,
+        "found": True,
+        "results": compressed_results,
     }

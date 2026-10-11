@@ -8,13 +8,11 @@ from langchain_text_splitters import (
 
 from app.rag.vector_store import vector_store
 
-
 # ==========================================
 # Configuration
 # ==========================================
 
 KNOWLEDGE_PATH = Path("knowledge")
-
 
 # ==========================================
 # Document Metadata Builder
@@ -25,8 +23,6 @@ def enrich_metadata(document, file_path):
     document.metadata["source_file"] = file_path.name
 
     file_name = file_path.stem.lower()
-
-
     # --------------------------------------
     # Company Documents
     # --------------------------------------
@@ -59,7 +55,6 @@ def enrich_metadata(document, file_path):
             "analysis_guide"
         )
 
-
     # --------------------------------------
     # Default
     # --------------------------------------
@@ -69,7 +64,6 @@ def enrich_metadata(document, file_path):
         document.metadata["document_type"] = (
             "general"
         )
-
 
 # ==========================================
 # Ingest Documents
@@ -83,11 +77,9 @@ def ingest_documents():
         KNOWLEDGE_PATH.glob("*.txt")
     )
 
-
     print(
         f"\nFound {len(files)} documents\n"
     )
-
 
     # =====================================
     # Load Documents
@@ -95,19 +87,14 @@ def ingest_documents():
 
     for file_path in files:
 
-        print(
-            f"Loading: {file_path.name}"
-        )
-
+        print( f"Loading: {file_path.name}" )
 
         loader = TextLoader(
             str(file_path),
             encoding="utf-8"
         )
 
-
         loaded_documents = loader.load()
-
 
         # =================================
         # Add Metadata
@@ -120,38 +107,26 @@ def ingest_documents():
                 file_path
             )
 
-
         documents.extend(
             loaded_documents
         )
 
-
-    print(
-        f"\nLoaded {len(documents)} documents"
-    )
-
+    print(f"\nLoaded {len(documents)} documents")
 
     # =====================================
     # Split Documents
     # =====================================
 
     splitter = RecursiveCharacterTextSplitter(
-
         chunk_size=500,
-
         chunk_overlap=100
     )
-
 
     chunks = splitter.split_documents(
         documents
     )
 
-
-    print(
-        f"Created {len(chunks)} chunks"
-    )
-
+    print(f"Created {len(chunks)} chunks")
 
     # =====================================
     # Store Vectors
@@ -161,16 +136,11 @@ def ingest_documents():
         documents=chunks
     )
 
-
-    print(
-        "\nDocuments indexed successfully"
-    )
-
+    print("\nDocuments indexed successfully")
 
 # ==========================================
 # Run Ingestion
 # ==========================================
 
 if __name__ == "__main__":
-
     ingest_documents()
