@@ -6,6 +6,9 @@ ai:
   service:
     url: ${AI_SERVICE_URL:http://localhost:8000}
 
+market-data:
+  provider: ${MARKET_DATA_PROVIDER:MOCK}
+
 spring:
   config:
     import: optional:file:.env[.properties]
