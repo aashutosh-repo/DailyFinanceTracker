@@ -27,6 +27,11 @@ public record TechnicalAnalysisResponse(
         BigDecimal rsi14,
         BigDecimal volatility,
         BigDecimal volumeTrend,
-        String trend
+        String trend,
+        String provider,
+        String dataClassification,
+        LocalDate actualFromDate,
+        LocalDate actualToDate,
+        List<String> dataQualityWarnings
 ) {
 }
