@@ -16,6 +16,8 @@ public record SyncJobResponse(
         Integer updatedRecords,
         String errorMessage,
         LocalDateTime startedAt,
-        LocalDateTime completedAt
+        LocalDateTime completedAt,
+        String dataClassification,
+        java.util.List<String> dataQualityWarnings
 ) {
 }

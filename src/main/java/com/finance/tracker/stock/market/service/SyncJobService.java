@@ -6,6 +6,7 @@ import com.finance.tracker.stock.market.SyncJobRepository;
 import com.finance.tracker.stock.market.dto.SyncJobPageResponse;
 import com.finance.tracker.stock.market.dto.SyncJobResponse;
 import com.finance.tracker.stock.market.entity.SyncJob;
+import com.finance.tracker.stock.market.provider.MarketDataClassification;
 import com.finance.tracker.stock.market.specification.SyncJobSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -95,7 +96,7 @@ public class SyncJobService {
         SyncJob job = syncJobRepository.findById(jobId).orElseThrow();
 
         job.setStatus(SyncJobStatus.FAILED);
-        job.setErrorMessage(exception.getMessage());
+        job.setErrorMessage("Market data synchronization failed (" + exception.getClass().getSimpleName() + ").");
         job.setCompletedAt(LocalDateTime.now());
 
         syncJobRepository.save(job);
@@ -203,7 +204,9 @@ public class SyncJobService {
                 job.getUpdatedRecords(),
                 job.getErrorMessage(),
                 job.getStartedAt(),
-                job.getCompletedAt()
+                job.getCompletedAt(),
+                MarketDataClassification.fromProvider(job.getProvider()).name(),
+                List.of("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions.")
         );
     }
 
