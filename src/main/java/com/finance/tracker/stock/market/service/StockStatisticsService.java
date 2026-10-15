@@ -5,7 +5,10 @@ import com.finance.tracker.stock.company.CompanyRepository;
 import com.finance.tracker.stock.market.MarketPriceRepository;
 import com.finance.tracker.stock.market.dto.StockStatisticsResponse;
 import com.finance.tracker.stock.market.entity.MarketPrice;
+import com.finance.tracker.stock.market.provider.MarketDataClassification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +30,13 @@ public class StockStatisticsService {
             LocalDate fromDate,
             LocalDate toDate
     ) {
+                validateDateRange(fromDate, toDate);
         // =====================================
         // 1. Get Company
         // =====================================
 
         Company company = companyRepository.findBySymbolIgnoreCase(symbol)
-                .orElseThrow(() -> new RuntimeException("Company not found: " + symbol));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found: " + symbol));
 
         // =====================================
         // 2. Get Historical Prices
@@ -45,9 +49,11 @@ public class StockStatisticsService {
                         );
 
 
-        if (prices.isEmpty()) {
-            throw new RuntimeException("No market price data found");
+                if (prices == null || prices.isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No market price data found");
         }
+
+                validatePriceRows(prices, fromDate, toDate);
 
 
         // =====================================
@@ -99,12 +105,9 @@ public class StockStatisticsService {
         BigDecimal priceChange = endPrice.subtract(startPrice);
 
 
-        BigDecimal priceChangePercentage = BigDecimal.ZERO;
-
-
-        if (startPrice.compareTo(BigDecimal.ZERO) != 0) {
-
-            priceChangePercentage = priceChange.divide(startPrice, 4, RoundingMode.HALF_UP)
+                BigDecimal priceChangePercentage = null;
+                if (startPrice.compareTo(BigDecimal.ZERO) != 0) {
+                        priceChangePercentage = priceChange.divide(startPrice, 4, RoundingMode.HALF_UP)
                             .multiply(BigDecimal.valueOf(100))
                             .setScale(2, RoundingMode.HALF_UP);
         }
@@ -124,7 +127,40 @@ public class StockStatisticsService {
                 lowestPrice,
                 averagePrice,
                 priceChange,
-                priceChangePercentage
+                priceChangePercentage,
+                String.join(", ", prices.stream().map(MarketPrice::getSource).filter(java.util.Objects::nonNull).distinct().toList()),
+                MarketDataClassification.fromSources(prices.stream().map(MarketPrice::getSource).toList()).name(),
+                first.getPriceDate(),
+                last.getPriceDate(),
+                List.of("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions.")
         );
     }
+
+        private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
+                if (fromDate == null || toDate == null || fromDate.isAfter(toDate)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "from must be on or before to");
+                }
+        }
+
+        private void validatePriceRows(List<MarketPrice> prices, LocalDate fromDate, LocalDate toDate) {
+                LocalDate previousDate = null;
+                for (MarketPrice price : prices) {
+                        if (price == null || price.getPriceDate() == null
+                                        || price.getPriceDate().isBefore(fromDate) || price.getPriceDate().isAfter(toDate)
+                                        || price.getClosePrice() == null || price.getHighPrice() == null || price.getLowPrice() == null) {
+                                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market data is incomplete or outside the requested range");
+                        }
+                        if (price.getClosePrice().compareTo(BigDecimal.ZERO) <= 0
+                                        || price.getHighPrice().compareTo(BigDecimal.ZERO) <= 0
+                                        || price.getLowPrice().compareTo(BigDecimal.ZERO) <= 0
+                                        || price.getHighPrice().compareTo(price.getClosePrice()) < 0
+                                        || price.getLowPrice().compareTo(price.getClosePrice()) > 0) {
+                                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market prices are invalid");
+                        }
+                        if (previousDate != null && !price.getPriceDate().isAfter(previousDate)) {
+                                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market dates are duplicated or not chronological");
+                        }
+                        previousDate = price.getPriceDate();
+                }
+        }
 }

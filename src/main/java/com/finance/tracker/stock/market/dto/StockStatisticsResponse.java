@@ -15,7 +15,12 @@ public record StockStatisticsResponse(
         BigDecimal lowestPrice,
         BigDecimal averagePrice,
         BigDecimal priceChange,
-        BigDecimal priceChangePercentage
+        BigDecimal priceChangePercentage,
+        String provider,
+        String dataClassification,
+        LocalDate actualFromDate,
+        LocalDate actualToDate,
+        java.util.List<String> dataQualityWarnings
 
 ) {
 }

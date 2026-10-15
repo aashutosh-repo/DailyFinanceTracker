@@ -13,9 +13,12 @@ import com.finance.tracker.stock.company.CompanyRepository;
 import com.finance.tracker.stock.fudamentals.services.FundamentalsService;
 import com.finance.tracker.stock.market.MarketPriceRepository;
 import com.finance.tracker.stock.market.entity.MarketPrice;
+import com.finance.tracker.stock.market.provider.MarketDataClassification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,6 +35,12 @@ public class StockAnalysisService {
     private final FundamentalsService fundamentalsService;
 
     public TechnicalAnalysisResponse getTechnicalAnalysis(String symbol, LocalDate fromDate, LocalDate toDate, int period) {
+        if (fromDate == null || toDate == null || fromDate.isAfter(toDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "from must be on or before to");
+        }
+        if (period < 2 || period > 200) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "period must be between 2 and 200");
+        }
         Company company = findCompany(symbol);
         List<MarketPrice> marketPriceList = marketPriceRepository.findByCompanyIdAndPriceDateBetweenOrderByPriceDateAsc(
                 company.getId(),
@@ -39,17 +48,18 @@ public class StockAnalysisService {
                 toDate
         );
         if(marketPriceList.isEmpty()) {
-            throw new IllegalArgumentException("No Market Data Found" + symbol);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No market data found for " + symbol);
         }
+
+        validateTechnicalPriceRows(marketPriceList, fromDate, toDate);
 
         List<PricePoint> pricePoints = marketPriceList.stream().map(this::toPricePoint).toList();
         List<BigDecimal> closes = pricePoints.stream().map(PricePoint::close).toList();
 
         if (closes.size() < period) {
-            throw new IllegalArgumentException(
-                    "Not enough market data for technical analysis. Requested period=" + period
-                            + ", available closes=" + closes.size() + " for symbol " + symbol
-            );
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "Not enough market data for technical analysis. Requested period=" + period
+                    + ", available closes=" + closes.size());
         }
 
         List<TechnicalIndicatorResponse> indicators = new ArrayList<>();
@@ -63,15 +73,15 @@ public class StockAnalysisService {
             indicators.add(toResponse(TechnicalAnalysisCalculator.rsi(closes, period)));
         }
 
-        if (pricePoints.size() >= period+1) {
+        if (pricePoints.size() >= period * 2) {
             indicators.add(toResponse(TechnicalAnalysisCalculator.atr(pricePoints, period)));
         }
 
-        if (pricePoints.size() >= period+2) {
+        if (pricePoints.size() >= period * 2) {
             indicators.add(toResponse(TechnicalAnalysisCalculator.volumeTrends(pricePoints, period)));
         }
 
-        MacdResonse macd = closes.size() >= 35 ? toResponse(TechnicalAnalysisCalculator.macd(closes))  : null;
+        MacdResonse macd = closes.size() >= 34 ? toResponse(TechnicalAnalysisCalculator.macd(closes))  : null;
         BollingerBandsResponse bollingerBands = closes.size() >= period ? toResponse(TechnicalAnalysisCalculator.bollingerBands(closes,period, BigDecimal.valueOf(2))) : null;
         BigDecimal currentPrice = closes.getLast();
         BigDecimal dailyReturn = closes.size() >= 2 ? percentage(closes.get(closes.size() - 2), currentPrice) : null;
@@ -106,7 +116,12 @@ public class StockAnalysisService {
                 rsi14,
                 volatility,
                 volumeTrend,
-                trend
+                trend,
+                String.join(", ", marketPriceList.stream().map(MarketPrice::getSource).filter(java.util.Objects::nonNull).distinct().toList()),
+                MarketDataClassification.fromSources(marketPriceList.stream().map(MarketPrice::getSource).toList()).name(),
+                marketPriceList.getFirst().getPriceDate(),
+                marketPriceList.getLast().getPriceDate(),
+                List.of("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions.")
         );
     }
 
@@ -249,6 +264,29 @@ public class StockAnalysisService {
                 marketPrice.getClosePrice(),
                 marketPrice.getVolume() == null ? 0L : marketPrice.getVolume()
         );
+    }
+
+    private void validateTechnicalPriceRows(List<MarketPrice> prices, LocalDate fromDate, LocalDate toDate) {
+        LocalDate previousDate = null;
+        for (MarketPrice price : prices) {
+            if (price == null || price.getPriceDate() == null || price.getPriceDate().isBefore(fromDate)
+                    || price.getPriceDate().isAfter(toDate) || price.getClosePrice() == null
+                    || price.getHighPrice() == null || price.getLowPrice() == null || price.getVolume() == null) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market data is incomplete or outside the requested range");
+            }
+            if (previousDate != null && !price.getPriceDate().isAfter(previousDate)) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market dates are duplicated or not chronological");
+            }
+            if (price.getClosePrice().compareTo(BigDecimal.ZERO) <= 0
+                    || price.getHighPrice().compareTo(BigDecimal.ZERO) <= 0
+                    || price.getLowPrice().compareTo(BigDecimal.ZERO) <= 0
+                    || price.getHighPrice().compareTo(price.getClosePrice()) < 0
+                    || price.getLowPrice().compareTo(price.getClosePrice()) > 0
+                    || price.getVolume() < 0) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Stored market prices are invalid");
+            }
+            previousDate = price.getPriceDate();
+        }
     }
 
     private BigDecimal simpleMovingAverage(List<BigDecimal> closes, int period) {
