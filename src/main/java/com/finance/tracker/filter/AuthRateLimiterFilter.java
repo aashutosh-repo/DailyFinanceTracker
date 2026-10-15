@@ -21,6 +21,13 @@ public class AuthRateLimiterFilter extends OncePerRequestFilter {
     private static final int MAX_REQUEST = 10;
     private static final Duration WINDOW = Duration.ofMinutes(1);
     private final Map<String, RequestWindow> windows = new ConcurrentHashMap<>();
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return !path.equals("/api/v1/auth") && !path.startsWith("/api/v1/auth/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String key = request.getRemoteAddr() + ":" + request.getRequestURI();
@@ -29,7 +36,7 @@ public class AuthRateLimiterFilter extends OncePerRequestFilter {
         if (window.count.incrementAndGet() > MAX_REQUEST) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"errorCode\":\"RATE_LIMIT_EXCEEDED\",\"message\",\"Too many authentication requests\"}");
+            response.getWriter().write("{\"errorCode\":\"RATE_LIMIT_EXCEEDED\",\"message\":\"Too many authentication requests\"}");
             return;
         }
         filterChain.doFilter(request, response);
