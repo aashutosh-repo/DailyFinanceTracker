@@ -134,7 +134,7 @@ public class DailyTransactionRestController {
         Long resolvedUserId = resolvedUserId(userId);
 
         TransactionType transactionType = null;
-        if (request.getType() != null && request.getType().isBlank()) {
+        if (request.getType() != null && !request.getType().isBlank()) {
             transactionType = TransactionType.valueOf(request.getType().toUpperCase());
         }
 
