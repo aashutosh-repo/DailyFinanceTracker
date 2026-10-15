@@ -8,6 +8,10 @@ import java.util.List;
 
 public interface MarketDataProvider {
 
+    default String getDataClassification() {
+        return MarketDataClassification.UNKNOWN.name();
+    }
+
     List<MarketData> getHistoricalPrices(
             String symbol,
             LocalDate fromDate,

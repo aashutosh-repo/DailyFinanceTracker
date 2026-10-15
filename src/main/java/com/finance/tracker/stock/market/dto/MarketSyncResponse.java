@@ -8,5 +8,7 @@ public record MarketSyncResponse(
         int totalRecords,
         int insertedRecords,
         int updatedRecords,
-        String provider
+        String provider,
+        String dataClassification,
+        java.util.List<String> dataQualityWarnings
 ) { }

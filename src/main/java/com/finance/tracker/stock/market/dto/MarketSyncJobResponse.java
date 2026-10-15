@@ -8,5 +8,8 @@ import java.util.UUID;
 public record MarketSyncJobResponse(
         UUID jobId,
         String status,
-        String message
+        String message,
+        String provider,
+        String dataClassification,
+        java.util.List<String> dataQualityWarnings
 ) { }

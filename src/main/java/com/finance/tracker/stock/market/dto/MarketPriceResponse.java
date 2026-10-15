@@ -13,5 +13,7 @@ public record MarketPriceResponse(
         BigDecimal low,
         BigDecimal close,
         Long volume,
-        String source
+        String source,
+        String dataClassification,
+        java.util.List<String> dataQualityWarnings
 ) { }

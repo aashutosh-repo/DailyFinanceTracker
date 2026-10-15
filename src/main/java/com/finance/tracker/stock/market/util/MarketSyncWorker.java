@@ -42,6 +42,7 @@ public class MarketSyncWorker {
                                     company.getSymbol(),
                                     fromDate,
                                     toDate);
+            marketDataValidator.validateBatch(marketDataList, fromDate, toDate);
             //Existing Price
             List<MarketPrice> existingPrices = marketPriceRepository.findByCompanyIdAndPriceDateBetweenOrderByPriceDateAsc(
                     company.getId(),

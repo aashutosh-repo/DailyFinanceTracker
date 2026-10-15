@@ -7,6 +7,7 @@ import com.finance.tracker.stock.market.dto.MarketData;
 import com.finance.tracker.stock.market.dto.SyncJobResponse;
 import com.finance.tracker.stock.market.entity.MarketPrice;
 import com.finance.tracker.stock.market.provider.MarketDataProvider;
+import com.finance.tracker.stock.market.validator.MarketDataValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class MarketPriceSyncService {
     private final MarketDataProvider marketDataProvider;
     private final SyncJobService syncJobService;
     private final MarketPriceRepository marketPriceRepository;
+    private final MarketDataValidator marketDataValidator;
 
     @Transactional
     public void executeSync(UUID jobId) {
@@ -45,6 +47,7 @@ public class MarketPriceSyncService {
         // =====================================
 
         List<MarketData> prices = marketDataProvider.getHistoricalPrices(job.symbol(), job.fromDate(), job.toDate());
+        marketDataValidator.validateBatch(prices, job.fromDate(), job.toDate());
 
         // =====================================
         // 4. Fetch Existing Prices - ONE QUERY
@@ -63,7 +66,8 @@ public class MarketPriceSyncService {
         Map<LocalDate, MarketPrice> existingPriceMap = existingPrices.stream()
                         .collect(Collectors.toMap(
                                         MarketPrice::getPriceDate,
-                                        marketPrice -> marketPrice
+                        marketPrice -> marketPrice,
+                        (first, duplicate) -> first
                                 )
                         );
 
@@ -126,6 +130,7 @@ public class MarketPriceSyncService {
         marketPrice.setLowPrice(data.low());
         marketPrice.setClosePrice(data.close());
         marketPrice.setVolume(data.volume());
+        marketPrice.setSource(data.source());
 
         return marketPrice;
     }
@@ -141,5 +146,6 @@ public class MarketPriceSyncService {
         marketPrice.setLowPrice(data.low());
         marketPrice.setClosePrice(data.close());
         marketPrice.setVolume(data.volume());
+        marketPrice.setSource(data.source());
     }
 }

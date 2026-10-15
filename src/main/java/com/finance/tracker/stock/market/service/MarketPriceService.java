@@ -7,9 +7,12 @@ import com.finance.tracker.stock.market.dto.*;
 import com.finance.tracker.stock.market.entity.MarketPrice;
 import com.finance.tracker.stock.market.entity.SyncJob;
 import com.finance.tracker.stock.market.provider.MarketDataProvider;
+import com.finance.tracker.stock.market.provider.MarketDataClassification;
 import com.finance.tracker.stock.market.util.MarketPriceSyncWorker;
 import com.finance.tracker.stock.market.util.MarketSyncWorker;
 import com.finance.tracker.stock.market.validator.MarketDataValidator;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -38,6 +41,8 @@ public class MarketPriceService {
             LocalDate fromDate,
             LocalDate toDate) {
 
+                validateDateRange(fromDate, toDate);
+
         Company company = companyRepository.findBySymbol(symbol.toUpperCase())
                         .orElseThrow(() -> new RuntimeException("Company not found: " + symbol));
 
@@ -63,6 +68,8 @@ public class MarketPriceService {
                                     fromDate,
                                     toDate
                             );
+
+            marketDataValidator.validateBatch(marketDataList, fromDate, toDate);
 
 
             int inserted = 0;
@@ -143,6 +150,8 @@ public class MarketPriceService {
                     .provider(
                             marketDataProvider.getProviderName()
                     )
+                    .dataClassification(marketDataProvider.getDataClassification())
+                    .dataQualityWarnings(syncWarnings(marketDataList))
 
                     .build();
 
@@ -159,6 +168,7 @@ public class MarketPriceService {
             String symbol,
             LocalDate fromDate,
             LocalDate toDate) {
+        validateDateRange(fromDate, toDate);
         Company company = companyRepository.findBySymbol(symbol.toUpperCase())
                         .orElseThrow(() -> new RuntimeException("Company not found: " + symbol));
 
@@ -183,13 +193,28 @@ public class MarketPriceService {
                 .close(price.getClosePrice())
                 .volume(price.getVolume())
                 .source(price.getSource())
+                .dataClassification(MarketDataClassification.fromProvider(price.getSource()).name())
+                .dataQualityWarnings(List.of("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions."))
                 .build();
     }
+
+        private List<String> syncWarnings(List<MarketData> records) {
+                List<String> warnings = new java.util.ArrayList<>();
+                records.stream()
+                                .filter(record -> record.dataQualityWarnings() != null)
+                                .flatMap(record -> record.dataQualityWarnings().stream())
+                                .filter(warning -> warning != null && !warning.isBlank())
+                                .forEach(warnings::add);
+                warnings.add("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions.");
+                return warnings.stream().distinct().toList();
+        }
 
     public MarketSyncJobResponse startHistoricalSync(
             String symbol,
             LocalDate fromDate,
             LocalDate toDate) {
+
+        validateDateRange(fromDate, toDate);
 
         Company company = companyRepository.findBySymbol(symbol.toUpperCase())
                         .orElseThrow(() -> new RuntimeException("Company not found: " + symbol));
@@ -219,6 +244,9 @@ public class MarketPriceService {
                 .jobId(job.getId())
                 .status("RUNNING")
                 .message("Market data sync started")
+                .provider(marketDataProvider.getProviderName())
+                .dataClassification(marketDataProvider.getDataClassification())
+                .dataQualityWarnings(List.of("No exchange trading calendar is configured; missing dates cannot be classified as missing sessions."))
                 .build();
     }
 
@@ -229,10 +257,12 @@ public class MarketPriceService {
             LocalDate to
     ) {
 
+        validateDateRange(from, to);
+
         Company company = companyRepository.findBySymbolIgnoreCase(symbol)
                         .orElseThrow(() -> new RuntimeException("Company not found: " + symbol));
 
-        SyncJob job = syncJobService.createQueuedJob(company, from, to, "MOCK");
+        SyncJob job = syncJobService.createQueuedJob(company, from, to, marketDataProvider.getProviderName());
 
         // IMPORTANT:
         // Call async worker through Spring bean
@@ -240,4 +270,10 @@ public class MarketPriceService {
 
         return new AsyncMarketSyncResponse(job.getId(), job.getStatus().name());
     }
+
+        private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
+                if (fromDate == null || toDate == null || fromDate.isAfter(toDate)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "from must be on or before to");
+                }
+        }
 }

@@ -32,7 +32,7 @@ public class MarketPriceSyncWorker {
             log.info("Market price sync completed. jobId={}", jobId);
 
         } catch (Exception exception) {
-            log.error("Market price sync failed. jobId={}", jobId, exception);
+            log.error("Market price sync failed. jobId={}, failureCategory={}", jobId, exception.getClass().getSimpleName());
             syncJobService.markFailed(jobId, exception);
         }
     }

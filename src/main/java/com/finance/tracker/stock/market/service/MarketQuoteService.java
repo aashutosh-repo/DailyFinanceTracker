@@ -7,6 +7,7 @@ import com.finance.tracker.stock.market.dto.MarketQuoteData;
 import com.finance.tracker.stock.market.dto.MarketQuoteResponse;
 import com.finance.tracker.stock.market.entity.MarketQuote;
 import com.finance.tracker.stock.market.provider.MarketDataProvider;
+import com.finance.tracker.stock.market.provider.MarketDataClassification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +47,8 @@ public class MarketQuoteService {
             marketQuoteRepository.save(quote);
         }
 
-        return toResponse(company, quote, data, changed ? quote.getFetchedAt() : LocalDateTime.now());
+        LocalDateTime retrievedAt = data.retrievedAt() != null ? data.retrievedAt() : LocalDateTime.now();
+        return toResponse(company, quote, data, retrievedAt);
     }
 
     private boolean sameQuote(MarketQuote quote, MarketQuoteData data) {
@@ -67,11 +69,14 @@ public class MarketQuoteService {
     private MarketQuoteResponse toResponse(Company company, MarketQuote quote, MarketQuoteData data, LocalDateTime fetchedAt) {
         LocalDateTime marketTime = quote.getMarketTime() != null ? quote.getMarketTime() : data.marketTime();
         return new MarketQuoteResponse(
-                company.getSymbol(), company.getName(), company.getExchange(),
+            company.getSymbol(), company.getName(), data.exchange() != null ? data.exchange() : company.getExchange(),
                 quote.getPrice(), quote.getChange(), quote.getChangePercent(),
                 quote.getOpen(), quote.getHigh(), quote.getLow(), quote.getVolume(),
                 marketTime, fetchedAt, quote.getSource(),
-                marketSessionService.getStatus(marketTime));
+                marketSessionService.getStatus(marketTime),
+                MarketDataClassification.fromProvider(quote.getSource()).name(),
+                data.currency(),
+                data.dataQualityWarnings() == null ? java.util.List.of() : data.dataQualityWarnings());
     }
 
     private void validate(MarketQuoteData data) {

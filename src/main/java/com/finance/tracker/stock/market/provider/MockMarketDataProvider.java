@@ -2,7 +2,7 @@ package com.finance.tracker.stock.market.provider;
 
 import com.finance.tracker.stock.market.dto.MarketData;
 import com.finance.tracker.stock.market.dto.MarketQuoteData;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 @Component
-@Primary
+@ConditionalOnProperty(name = "market-data.provider", havingValue = "MOCK")
 public class MockMarketDataProvider
         implements MarketDataProvider {
 
@@ -86,5 +86,10 @@ public class MockMarketDataProvider
     @Override
     public String getProviderName() {
         return "MOCK";
+    }
+
+    @Override
+    public String getDataClassification() {
+        return MarketDataClassification.SYNTHETIC.name();
     }
 }

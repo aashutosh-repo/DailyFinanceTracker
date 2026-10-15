@@ -17,6 +17,9 @@ public record MarketQuoteResponse(
         LocalDateTime marketTime,
         LocalDateTime fetchedAt,
         String source,
-        String marketStatus
+        String marketStatus,
+        String dataClassification,
+        String currency,
+        java.util.List<String> dataQualityWarnings
 ) {
 }
